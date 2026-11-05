@@ -1,0 +1,14 @@
+[project]
+name = "veriseal"
+version = "0.1.0"
+description = "Software release signing and verification CLI"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = []
+
+[project.scripts]
+veriseal = "veriseal.cli:main"
+
+[build-system]
+requires = ["uv_build>=0.11.23,<0.12.0"]
+build-backend = "uv_build"
