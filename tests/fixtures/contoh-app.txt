@@ -1,0 +1,2 @@
+veriseal release notes v1.0.0
+line 2
