@@ -122,23 +122,3 @@ def verify_bytes(pub_pem: str, profile: str, message: bytes, signature: bytes) -
     except InvalidSignature:
         return False
     return True
-
-
-# if __name__ == "__main__":
-#     from veriseal.contracts import PROFILES
-
-#     msg = b"manifest bytes"
-#     for p in PROFILES:
-#         priv, pub, kid = generate_keypair(p)
-#         info = inspect_key(priv)
-#         assert info.is_private and info.profile == p and info.keyid == kid
-#         assert inspect_key(pub) == KeyInfo(False, p, pub, kid) and len(kid) == 64
-#         sig = sign_bytes(priv, msg)
-#         assert len(sig) == _SIG_LEN[p]
-#         assert verify_bytes(pub, p, msg, sig)
-#         assert not verify_bytes(pub, p, msg + b"x", sig)
-#         assert not verify_bytes(pub, p, msg, sig[:-1])
-#         bad = bytearray(sig); bad[0] ^= 1
-#         assert not verify_bytes(pub, p, msg, bytes(bad))
-#         assert not verify_bytes(pub, PROFILES[(PROFILES.index(p) + 1) % 3], msg, sig)
-#         print("ok", p, len(sig))

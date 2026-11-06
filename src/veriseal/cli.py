@@ -91,7 +91,3 @@ def main(argv: list[str] | None = None) -> int:
     else:
         print("Not implemented", file=sys.stderr)
     return EXIT_INPUT_ERROR
-
-
-if __name__ == "__main__":
-    raise SystemExit(main())

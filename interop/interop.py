@@ -1,7 +1,4 @@
-"""Interop: veriseal <-> OpenSSL CLI, both directions, all 3 profiles.
-
-Run: .venv/bin/python interop/interop.py   (needs `openssl` >= 3.0 on PATH)
-"""
+"""Interop: veriseal <-> OpenSSL CLI, both directions, all 3 profiles."""
 
 import subprocess
 import sys
@@ -79,6 +76,3 @@ def main() -> int:
             print(f"{'PASS' if res else 'FAIL'} {p}: veriseal->openssl={a} openssl->veriseal={b} openssl-rejects-tamper={neg}")
     return 1 if fails else 0
 
-
-if __name__ == "__main__":
-    sys.exit(main())
