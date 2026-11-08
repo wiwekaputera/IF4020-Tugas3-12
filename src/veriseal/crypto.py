@@ -13,7 +13,7 @@ from cryptography.hazmat.primitives.asymmetric.utils import (
 
 _SHA = hashes.SHA256()
 _PSS = padding.PSS(mgf=padding.MGF1(_SHA), salt_length=32)
-_N = ec.SECP256R1()
+# _N = ec.SECP256R1()
 _ORDER = 0xFFFFFFFF00000000FFFFFFFFFFFFFFFFBCE6FAADA7179E84F3B9CAC2FC632551
 _SIG_LEN = {"rsa-pss-sha256": 384, "ecdsa-p256-sha256": 64, "ed25519": 64}
 
@@ -54,11 +54,16 @@ def _profile(pub) -> str:
 
 def _load(pem_str: str):
     """Return (key_object, is_private). ValueError if not a valid PKCS8/SPKI PEM."""
-    data = pem_str.encode()
+    # data = pem_str.encode()
+    s = pem_str.strip()
+    data = s.encode()
     try:
-        if b"PRIVATE KEY" in data:
+        if s.startswith("-----BEGIN PRIVATE KEY-----") and s.endswith("-----END PRIVATE KEY-----"):
             return serialization.load_pem_private_key(data, password=None), True
-        return serialization.load_pem_public_key(data), False
+        # return serialization.load_pem_public_key(data), False
+        if s.startswith("-----BEGIN PUBLIC KEY-----") and s.endswith("-----END PUBLIC KEY-----"):
+            return serialization.load_pem_public_key(data), False
+        raise ValueError("PEM key must be PKCS#8 (PRIVATE KEY) or SPKI (PUBLIC KEY)")
     except Exception as e:
         raise ValueError(f"invalid PEM key: {e}") from e
 
@@ -68,7 +73,7 @@ def generate_keypair(profile: str) -> tuple[str, str, str]:
     if profile == "rsa-pss-sha256":
         priv = rsa.generate_private_key(65537, 3072)
     elif profile == "ecdsa-p256-sha256":
-        priv = ec.generate_private_key(_N)
+        priv = ec.generate_private_key(ec.SECP256R1())
     elif profile == "ed25519":
         priv = ed25519.Ed25519PrivateKey.generate()
     else:
@@ -106,7 +111,7 @@ def sign_bytes(priv_pem: str, message: bytes) -> bytes:
 def verify_bytes(pub_pem: str, profile: str, message: bytes, signature: bytes) -> bool:
     """Verify raw signature bytes over message."""
     key, is_private = _load(pub_pem)
-    if is_private or _profile(key) != profile or len(signature) != _SIG_LEN[profile]:
+    if is_private or _profile(key) != profile or len(signature) != _SIG_LEN.get(profile):
         return False
     try:
         if profile == "rsa-pss-sha256":
