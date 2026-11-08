@@ -76,3 +76,5 @@ def main() -> int:
             print(f"{'PASS' if res else 'FAIL'} {p}: veriseal->openssl={a} openssl->veriseal={b} openssl-rejects-tamper={neg}")
     return 1 if fails else 0
 
+if __name__ == "__main__":
+    sys.exit(main())
