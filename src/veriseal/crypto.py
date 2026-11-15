@@ -1,5 +1,6 @@
 """Cryptographic operations and PEM key handling."""
 
+import functools
 import hashlib
 from typing import NamedTuple
 
@@ -52,6 +53,7 @@ def _profile(pub) -> str:
     raise ValueError("unsupported key type")
 
 
+@functools.lru_cache(maxsize=64)
 def _load(pem_str: str):
     """Return (key_object, is_private). ValueError if not a valid PKCS8/SPKI PEM."""
     # data = pem_str.encode()
