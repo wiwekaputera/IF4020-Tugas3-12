@@ -21,7 +21,37 @@ flow of Sigstore Cosign but fully offline:
 A valid signature proves who published a release and that it arrived
 unchanged. It does not prove that the software is free of malware.
 
-<!-- P1: (ii) Tech stack, (iii) Dependencies, (vi-a) algorithm-to-library mapping & key formats, API docs URL -->
+## Tech Stack
+
+| Layer | Technology | Version / Target |
+| :--- | :--- | :--- |
+| **Language & Runtime** | Python | `>= 3.13` (tested on Python `3.13.18`) |
+| **Cryptographic Engine** | [PyCA `cryptography`](https://cryptography.io/en/latest/) (OpenSSL C backend) | `>= 50.0.2` (OpenSSL `3.x` / `4.0.3`) |
+| **Package & Build System** | [`uv`](https://docs.astral.sh/uv/) / `uv_build` | `>= 0.11.23` |
+| **Container Runtime** | Docker (`python:3.13-slim`) | `linux/amd64` |
+| **External Interop Tool** | OpenSSL CLI (`openssl dgst`, `openssl pkeyutl`) | OpenSSL `>= 3.0` |
+
+## Dependencies
+
+### External Runtime Dependencies (`pyproject.toml`)
+
+- **[`cryptography`](https://pypi.org/project/cryptography/) (`>= 50.0.2`)** — used exclusively in [`src/veriseal/crypto.py`](src/veriseal/crypto.py) for asymmetric key generation, PEM/DER serialization, and digital signature creation/verification:
+  - [`cryptography.hazmat.primitives.asymmetric.rsa`](https://cryptography.io/en/latest/hazmat/primitives/asymmetric/rsa/) & [`padding`](https://cryptography.io/en/latest/hazmat/primitives/asymmetric/padding/#cryptography.hazmat.primitives.asymmetric.padding.PSS) — RSA 3072-bit key generation and RSASSA-PSS signing/verification.
+  - [`cryptography.hazmat.primitives.asymmetric.ec`](https://cryptography.io/en/latest/hazmat/primitives/asymmetric/ec/) & [`utils`](https://cryptography.io/en/latest/hazmat/primitives/asymmetric/utils/) — NIST P-256 (`SECP256R1`) ECDSA signing/verification and ASN.1 DER $\leftrightarrow$ `(r, s)` conversion.
+  - [`cryptography.hazmat.primitives.asymmetric.ed25519`](https://cryptography.io/en/latest/hazmat/primitives/asymmetric/ed25519/) — RFC 8032 PureEdDSA key generation and signing/verification.
+  - [`cryptography.hazmat.primitives.hashes`](https://cryptography.io/en/latest/hazmat/primitives/cryptographic-hashes/) — `SHA256()` for RSA-PSS (message digest and MGF1) and ECDSA.
+  - [`cryptography.hazmat.primitives.serialization`](https://cryptography.io/en/latest/hazmat/primitives/asymmetric/serialization/) — PKCS#8 (`PRIVATE KEY`) and SPKI (`PUBLIC KEY`) PEM/DER encoding and decoding.
+
+### Python Standard Library Modules
+
+All other functionality is implemented using the Python 3.13 standard library with zero third-party packages:
+- `hashlib` — streaming SHA-256 for artifacts (`formats.hash_file`) and SPKI DER key fingerprints (`keyid`).
+- `json` — strict JSON parsing (duplicate-key, float, and constant rejection) and canonical manifest serialization.
+- `base64`, `binascii` — strict RFC 4648 Base64 encoding and canonical round-trip validation.
+- `argparse` — non-interactive CLI parsing and exit code handling.
+- `os`, `tempfile`, `pathlib` — bounded file reads and crash-safe atomic file writes (`mkstemp` + `fsync` + `os.replace`).
+
+<!-- TODO(P1): Add public API Documentation URL when hosted -->
 
 <!-- P3: (iv) Registry pull (tag + sha256 digest), CI/CD runner usage, test reproduction commands -->
 
@@ -180,6 +210,34 @@ fingerprint equals `keyid`; otherwise verification fails with
 `FORMAT_ERROR`. An empty `keys` array is valid and trusts nothing. The store
 is written atomically (temporary file in the same directory, then rename)
 and is never updated from bundle contents.
+
+### Key files & `keyid` — Table 2.5
+
+| Component | Standard & PEM Label | Algorithm & Encoding Rules |
+| :--- | :--- | :--- |
+| **Private Key** (`.key.pem`) | Unencrypted PKCS#8 ([RFC 5958](https://www.rfc-editor.org/rfc/rfc5958)), `-----BEGIN PRIVATE KEY-----` | Written atomically with mode `0600`. Encrypted PKCS#8 and legacy PKCS#1 (`BEGIN RSA PRIVATE KEY`) are rejected. |
+| **Public Key** (`.pub.pem`) | SubjectPublicKeyInfo / SPKI ([RFC 5280](https://www.rfc-editor.org/rfc/rfc5280)), `-----BEGIN PUBLIC KEY-----` | Written with mode `0644`. Legacy PKCS#1 (`BEGIN RSA PUBLIC KEY`) is rejected. |
+| **Fingerprint (`keyid`)** | `hex_lower(SHA256(DER_SPKI))` (64 lowercase hex chars) | Computed over the canonical DER bytes re-exported from the parsed SPKI public key, making `keyid` invariant to PEM line endings or wrapping. |
+
+### Cryptographic profiles & library API mapping — Table 2.1
+
+All three profiles sign and verify the raw canonical manifest bytes `M` (`minisign-manifest/v1`). Artifact bytes are hashed separately into `artifact.sha256`; `crypto.py` never pre-hashes `M` before passing it to `cryptography`, preventing double hashing.
+
+| Profile | Key Parameters & SPKI Identity | Library Sign / Verify Mapping (`src/veriseal/crypto.py`) | Signature Format & Size |
+| :--- | :--- | :--- | :--- |
+| `rsa-pss-sha256` | **RSA 3072-bit**, public exponent `e = 65537`. SPKI OID: `rsaEncryption` (`1.2.840.113549.1.1.1`).<br>Keygen: `rsa.generate_private_key(65537, 3072)` | **Scheme:** RSASSA-PSS ([RFC 8017](https://www.rfc-editor.org/rfc/rfc8017)) with SHA-256, MGF1-SHA-256, and 32-byte CSPRNG salt.<br>• Sign: `key.sign(M, padding.PSS(mgf=padding.MGF1(hashes.SHA256()), salt_length=32), hashes.SHA256())`<br>• Verify: `pub.verify(sig, M, padding.PSS(mgf=padding.MGF1(hashes.SHA256()), salt_length=32), hashes.SHA256())`<br>• Docs: [PyCA RSA](https://cryptography.io/en/latest/hazmat/primitives/asymmetric/rsa/) | **384 bytes** (raw integer octets) |
+| `ecdsa-p256-sha256` | **NIST P-256 (`secp256r1`)**. SPKI OID: `id-ecPublicKey` with named curve `prime256v1` (`1.2.840.10045.3.1.7`), uncompressed SEC1 point.<br>Keygen: `ec.generate_private_key(ec.SECP256R1())` | **Scheme:** ECDSA ([FIPS 186-5](https://doi.org/10.6028/NIST.FIPS.186-5)) with single SHA-256 and CSPRNG nonce.<br>• Sign: `der = key.sign(M, ec.ECDSA(hashes.SHA256()))`, decoded via `decode_dss_signature(der)` and packed as `r.to_bytes(32, "big") + s.to_bytes(32, "big")`.<br>• Verify: unpacks 32B big-endian `r, s`, checks `0 < r < n` and `0 < s < n` (`n` = P-256 order; valid non-low-S accepted), encodes via `encode_dss_signature(r, s)`, then calls `pub.verify(der, M, ec.ECDSA(hashes.SHA256()))`.<br>• Docs: [PyCA Elliptic Curves](https://cryptography.io/en/latest/hazmat/primitives/asymmetric/ec/) | **64 bytes** (`r \|\| s`, 32-byte big-endian each) |
+| `ed25519` | **Ed25519** ([RFC 8032](https://www.rfc-editor.org/rfc/rfc8032)). SPKI OID: `id-Ed25519` (`1.3.101.112`) with absent parameters per [RFC 8410](https://www.rfc-editor.org/rfc/rfc8410).<br>Keygen: `ed25519.Ed25519PrivateKey.generate()` | **Scheme:** PureEdDSA (RFC 8032) with internal SHA-512 and deterministic nonce (no external pre-hash, no context, Ed25519ph not used).<br>• Sign: `key.sign(M)`<br>• Verify: `pub.verify(sig, M)`<br>• Docs: [PyCA Ed25519](https://cryptography.io/en/latest/hazmat/primitives/asymmetric/ed25519/) | **64 bytes** (standard `R \|\| S` encoding) |
+
+### Dedicated test keys (`keys/`)
+
+The `keys/` directory contains disposable keypairs generated specifically for automated testing, OpenSSL interoperability, and local benchmarks (never used for real services):
+
+| Profile | Private Key | Public Key | `keyid` (`SHA256(DER_SPKI)`) |
+| :--- | :--- | :--- | :--- |
+| `rsa-pss-sha256` | `keys/test-rsa-pss-sha256.key.pem` | `keys/test-rsa-pss-sha256.pub.pem` | `00ac4599f135c12763211c80bfb65f06c4020a10a9ee7d193e67b6f7a810e469` |
+| `ecdsa-p256-sha256` | `keys/test-ecdsa-p256-sha256.key.pem` | `keys/test-ecdsa-p256-sha256.pub.pem` | `0229d5712f22ebbc96f3c28fbb19911b3711501b39b56a7a930ab51404c42f61` |
+| `ed25519` | `keys/test-ed25519.key.pem` | `keys/test-ed25519.pub.pem` | `8326a614cf1e5f2c4ecc107656f2577a00e813eafe4dc748c88819a00ef44d86` |
 
 ### SBOM (bonus)
 
