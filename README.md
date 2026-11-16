@@ -51,7 +51,15 @@ All other functionality is implemented using the Python 3.13 standard library wi
 - `argparse` — non-interactive CLI parsing and exit code handling.
 - `os`, `tempfile`, `pathlib` — bounded file reads and crash-safe atomic file writes (`mkstemp` + `fsync` + `os.replace`).
 
-<!-- TODO(P1): Add public API Documentation URL when hosted -->
+## API Documentation
+
+Internal module API documentation (`veriseal.cli`, `veriseal.contracts`, `veriseal.crypto`, `veriseal.formats`, `veriseal.sbom`, `veriseal.trust`) is auto-generated from reStructuredText docstrings and Python type annotations using [`pdoc`](https://pdoc.dev/) and published via GitHub Pages (`.github/workflows/deploy-docs.yml`):
+
+- **Hosted API Docs:** https://wiwekaputera.github.io/IF4020-Tugas3-12/
+- **Local preview:**
+  ```sh
+  uvx --with cryptography pdoc --docformat restructuredtext src/veriseal
+  ```
 
 ## Container Distribution & CI/CD Usage
 
