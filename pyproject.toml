@@ -1,10 +1,12 @@
 [project]
 name = "veriseal"
-version = "0.1.0"
+version = "1.0.0"
 description = "Software release signing and verification CLI"
 readme = "README.md"
 requires-python = ">=3.13"
-dependencies = []
+dependencies = [
+    "cryptography>=50.0.2",
+]
 
 [project.scripts]
 veriseal = "veriseal.cli:main"

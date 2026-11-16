@@ -1,0 +1,35 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.5",
+  "package": "contoh-app",
+  "version": "1.0.0",
+  "artifact_sha256": "1f58a8d8f303ecea8680d81335ddc303334e28e536c842b3b1d0c831ea6ff0f0",
+  "artifact": {
+    "name": "contoh-app.zip",
+    "size": 1312,
+    "sha256": "1f58a8d8f303ecea8680d81335ddc303334e28e536c842b3b1d0c831ea6ff0f0"
+  },
+  "subject": {
+    "name": "contoh-app.zip",
+    "sha256": "1f58a8d8f303ecea8680d81335ddc303334e28e536c842b3b1d0c831ea6ff0f0"
+  },
+  "metadata": {
+    "component": {
+      "name": "contoh-app",
+      "version": "1.0.0",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "1f58a8d8f303ecea8680d81335ddc303334e28e536c842b3b1d0c831ea6ff0f0"
+        }
+      ]
+    }
+  },
+  "components": [
+    {
+      "type": "library",
+      "name": "cryptography",
+      "version": "44.0.0"
+    }
+  ]
+}
