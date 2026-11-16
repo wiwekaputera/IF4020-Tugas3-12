@@ -1,0 +1,1 @@
+{"valid": false, "status": "KEY_NOT_TRUSTED", "message": "keyid is not in the trust store", "algorithm": "ed25519", "keyid": "d1340745590bdd90264565bb62ae366480c045bf119a65a59f08c13e284c955d", "package": "contoh-app", "version": "1.0.0"}

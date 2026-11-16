@@ -6,6 +6,7 @@ on:
       image_digest:
         description: "Pinned container image reference (e.g., ghcr.io/wiwekaputera/if4020-tugas3-12/veriseal:1.0.0@sha256:<digest>)"
         required: true
+        default: "ghcr.io/wiwekaputera/if4020-tugas3-12/veriseal:1.0.0@sha256:bdd18999b4e9d27937c0b7344b3ffedaf8466bfdada21ed924a73e87cd6054ce"
 
 permissions:
   contents: read

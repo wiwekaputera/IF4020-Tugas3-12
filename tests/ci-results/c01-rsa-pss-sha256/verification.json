@@ -1,0 +1,1 @@
+{"valid": true, "status": "OK", "message": "Signature and artifact are valid.", "algorithm": "rsa-pss-sha256", "keyid": "219075dd6523e5a542e108f0cfe752cbd0e8578c8f9c3a5a691f37c0a91154fa", "package": "contoh-app", "version": "1.0.0"}

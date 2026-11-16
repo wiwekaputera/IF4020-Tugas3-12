@@ -53,7 +53,83 @@ All other functionality is implemented using the Python 3.13 standard library wi
 
 <!-- TODO(P1): Add public API Documentation URL when hosted -->
 
-<!-- P3: (iv) Registry pull (tag + sha256 digest), CI/CD runner usage, test reproduction commands -->
+## Container Distribution & CI/CD Usage
+
+### Release Image Identity (Spec Section 2.9, Table 2.13)
+
+| Field | Value |
+| :--- | :--- |
+| **Program Version** | `1.0.0` |
+| **Repository Tag / Commit** | `v1.0.0` (`1b4ff68c2d88b0db4a87a0a082baf7a3b031d456`) |
+| **Target Platform** | `linux/amd64` |
+| **Registry Image Tag** | `ghcr.io/wiwekaputera/if4020-tugas3-12/veriseal:1.0.0` |
+| **Image SHA-256 Digest** | `sha256:bdd18999b4e9d27937c0b7344b3ffedaf8466bfdada21ed924a73e87cd6054ce` |
+| **Pinned Image Reference** | `ghcr.io/wiwekaputera/if4020-tugas3-12/veriseal:1.0.0@sha256:bdd18999b4e9d27937c0b7344b3ffedaf8466bfdada21ed924a73e87cd6054ce` |
+
+### Pulling and Running on a CI/CD Runner
+
+Pull the public container image strictly by its pinned `@sha256` digest (no authentication required):
+
+```sh
+IMAGE="ghcr.io/wiwekaputera/if4020-tugas3-12/veriseal:1.0.0@sha256:bdd18999b4e9d27937c0b7344b3ffedaf8466bfdada21ed924a73e87cd6054ce"
+docker pull "$IMAGE"
+```
+
+Run `sign` and `verify` on a Linux CI/CD runner using `--network none`, `--user "$(id -u):$(id -g)"`, and an ephemeral `0600` private key file:
+
+```sh
+set -eu
+: "${IMAGE:?mandatory}"
+: "${SIGNING_KEY_FILE:?mandatory}"
+trap 'rm -f "$SIGNING_KEY_FILE"' 0
+mkdir -p out
+
+docker pull "$IMAGE"
+
+# 1. Sign artifact using ephemeral 0600 secret key
+docker run --rm --network none \
+  --user "$(id -u):$(id -g)" \
+  -v "$PWD/dist:/input:ro" \
+  -v "$PWD/out:/output" \
+  -v "$SIGNING_KEY_FILE:/run/signing.key.pem:ro" \
+  "$IMAGE" sign --file /input/contoh-app.zip \
+  --package contoh-app --version 1.0.0 \
+  --key /run/signing.key.pem --out /output/rilis.json
+
+rm -f "$SIGNING_KEY_FILE"
+
+# 2. Verify release against out-of-band trust store (no private key mounted)
+docker run --rm --network none \
+  --user "$(id -u):$(id -g)" \
+  -v "$PWD/dist:/input:ro" \
+  -v "$PWD/out:/output:ro" \
+  -v "$PWD/ci/trust.json:/trust.json:ro" \
+  "$IMAGE" verify --file /input/contoh-app.zip \
+  --bundle /output/rilis.json --trust-store /trust.json \
+  --package contoh-app --version 1.0.0 --json \
+  > out/verification.json
+```
+
+### Reproducing Automated Tests & Benchmarks
+
+```sh
+# 1. Black-box CLI security tests (U01-U14 + SBOM00-SBOM02 -> tests/results/SUMMARY.md)
+uv run python tests/run_tests.py
+
+# 2. Black-box tests executed inside the Docker container
+VERISEAL_CMD="docker run --rm --network none --user $(id -u):$(id -g) -v $PWD:$PWD -w $PWD $IMAGE" \
+  uv run python tests/run_tests.py
+
+# 3. CI/CD consumer integration scenarios (C01-C05 -> out/SUMMARY.md; requires CI_SIGNING_KEY_* env vars)
+IMAGE="ghcr.io/wiwekaputera/if4020-tugas3-12/veriseal:1.0.0@sha256:bdd18999b4e9d27937c0b7344b3ffedaf8466bfdada21ed924a73e87cd6054ce" \
+  bash ci/run_c01_c05.sh
+
+# 4. External OpenSSL interoperability tests (all 3 profiles)
+uv run python interop/interop.py
+
+# 5. Cryptographic & CLI performance benchmarks (Table 2.12 -> benchmarks/results/SUMMARY.md)
+uv run python benchmarks/crypto_benchmark.py
+```
 
 ## Local Setup (`uv`)
 
