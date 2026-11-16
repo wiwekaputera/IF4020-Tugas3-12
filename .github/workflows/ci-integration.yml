@@ -1,0 +1,38 @@
+name: CI/CD Consumer Pipeline & Integration Tests (C01-C05)
+
+on:
+  workflow_dispatch:
+    inputs:
+      image_digest:
+        description: "Pinned container image reference (e.g., ghcr.io/wiwekaputera/if4020-tugas3-12/veriseal:1.0.0@sha256:<digest>)"
+        required: true
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  consumer-pipeline-c01-c05:
+    name: Run C01-C05 via Pinned Container Image (No Source Build)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout consumer configuration and trust store
+        uses: actions/checkout@v4
+
+      - name: Execute CI/CD integration scenarios C01-C05
+        env:
+          IMAGE: ${{ inputs.image_digest }}
+          CI_SIGNING_KEY_RSA: ${{ secrets.CI_SIGNING_KEY_RSA }}
+          CI_SIGNING_KEY_ECDSA: ${{ secrets.CI_SIGNING_KEY_ECDSA }}
+          CI_SIGNING_KEY_ED25519: ${{ secrets.CI_SIGNING_KEY_ED25519 }}
+        run: |
+          bash ci/run_c01_c05.sh
+          cat out/SUMMARY.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload C01-C05 verification evidence and marker proofs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-c01-c05-evidence
+          path: out/
+          if-no-files-found: warn

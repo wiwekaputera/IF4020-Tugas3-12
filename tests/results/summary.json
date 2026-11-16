@@ -2,8 +2,8 @@
   "total": 32,
   "passed": 32,
   "failed": 0,
-  "test_suite_command": "uv run python tests/run_tests.py --mock",
-  "target_cli": ".venv/bin/python3 tests/mock_veriseal.py",
+  "test_suite_command": "uv run python tests/run_tests.py",
+  "target_cli": "uv run --no-cache veriseal",
   "fixtures_dir": "tests/fixtures",
   "results": [
     {
@@ -11,7 +11,7 @@
       "scenario": "Sign and verify text file (37 B)",
       "profile": "rsa-pss-sha256",
       "input_files": "tests/fixtures/contoh-app.txt",
-      "command": ".venv/bin/python3 tests/mock_veriseal.py verify --file tests/fixtures/contoh-app.txt --bundle tests/results/_work/U01-rsa-pss-sha256-text.json --trust-store tests/results/_work/trust.json --package contoh-app --version 1.0.0 --json",
+      "command": "uv run --no-cache veriseal verify --file tests/fixtures/contoh-app.txt --bundle tests/results/_work/U01-rsa-pss-sha256-text.json --trust-store tests/results/_work/trust.json --package contoh-app --version 1.0.0 --json",
       "expected": {
         "exit_code": 0,
         "status": "OK",
@@ -21,7 +21,7 @@
         "exit_code": 0,
         "status": "OK",
         "valid": true,
-        "stdout": "{\"valid\":true,\"status\":\"OK\",\"message\":\"Signature and artifact are valid.\",\"algorithm\":\"rsa-pss-sha256\",\"keyid\":\"2a5923b6875f314ad009a72126210b106c614b8a35adcdbf7f73be8356c8e7da\",\"package\":\"contoh-app\",\"version\":\"1.0.0\"}",
+        "stdout": "{\"valid\": true, \"status\": \"OK\", \"message\": \"Signature and artifact are valid.\", \"algorithm\": \"rsa-pss-sha256\", \"keyid\": \"d25b51eabda69be4772ffeb2215de384b080163249647ee81d8d8b00ac33555c\", \"package\": \"contoh-app\", \"version\": \"1.0.0\"}",
         "stderr": ""
       },
       "notes": "",
@@ -32,7 +32,7 @@
       "scenario": "Sign and verify binary file (4096 B)",
       "profile": "rsa-pss-sha256",
       "input_files": "tests/fixtures/contoh-app.bin",
-      "command": ".venv/bin/python3 tests/mock_veriseal.py verify --file tests/fixtures/contoh-app.bin --bundle tests/results/_work/U01-rsa-pss-sha256-binary.json --trust-store tests/results/_work/trust.json --package contoh-app --version 1.0.0 --json",
+      "command": "uv run --no-cache veriseal verify --file tests/fixtures/contoh-app.bin --bundle tests/results/_work/U01-rsa-pss-sha256-binary.json --trust-store tests/results/_work/trust.json --package contoh-app --version 1.0.0 --json",
       "expected": {
         "exit_code": 0,
         "status": "OK",
@@ -42,7 +42,7 @@
         "exit_code": 0,
         "status": "OK",
         "valid": true,
-        "stdout": "{\"valid\":true,\"status\":\"OK\",\"message\":\"Signature and artifact are valid.\",\"algorithm\":\"rsa-pss-sha256\",\"keyid\":\"2a5923b6875f314ad009a72126210b106c614b8a35adcdbf7f73be8356c8e7da\",\"package\":\"contoh-app\",\"version\":\"1.0.0\"}",
+        "stdout": "{\"valid\": true, \"status\": \"OK\", \"message\": \"Signature and artifact are valid.\", \"algorithm\": \"rsa-pss-sha256\", \"keyid\": \"d25b51eabda69be4772ffeb2215de384b080163249647ee81d8d8b00ac33555c\", \"package\": \"contoh-app\", \"version\": \"1.0.0\"}",
         "stderr": ""
       },
       "notes": "",
@@ -53,7 +53,7 @@
       "scenario": "Sign and verify empty file (0 B)",
       "profile": "rsa-pss-sha256",
       "input_files": "tests/fixtures/empty.dat",
-      "command": ".venv/bin/python3 tests/mock_veriseal.py verify --file tests/fixtures/empty.dat --bundle tests/results/_work/U01-rsa-pss-sha256-empty.json --trust-store tests/results/_work/trust.json --package contoh-app --version 1.0.0 --json",
+      "command": "uv run --no-cache veriseal verify --file tests/fixtures/empty.dat --bundle tests/results/_work/U01-rsa-pss-sha256-empty.json --trust-store tests/results/_work/trust.json --package contoh-app --version 1.0.0 --json",
       "expected": {
         "exit_code": 0,
         "status": "OK",
@@ -63,7 +63,7 @@
         "exit_code": 0,
         "status": "OK",
         "valid": true,
-        "stdout": "{\"valid\":true,\"status\":\"OK\",\"message\":\"Signature and artifact are valid.\",\"algorithm\":\"rsa-pss-sha256\",\"keyid\":\"2a5923b6875f314ad009a72126210b106c614b8a35adcdbf7f73be8356c8e7da\",\"package\":\"contoh-app\",\"version\":\"1.0.0\"}",
+        "stdout": "{\"valid\": true, \"status\": \"OK\", \"message\": \"Signature and artifact are valid.\", \"algorithm\": \"rsa-pss-sha256\", \"keyid\": \"d25b51eabda69be4772ffeb2215de384b080163249647ee81d8d8b00ac33555c\", \"package\": \"contoh-app\", \"version\": \"1.0.0\"}",
         "stderr": ""
       },
       "notes": "",
@@ -74,7 +74,7 @@
       "scenario": "Sign and verify text file (37 B)",
       "profile": "ecdsa-p256-sha256",
       "input_files": "tests/fixtures/contoh-app.txt",
-      "command": ".venv/bin/python3 tests/mock_veriseal.py verify --file tests/fixtures/contoh-app.txt --bundle tests/results/_work/U01-ecdsa-p256-sha256-text.json --trust-store tests/results/_work/trust.json --package contoh-app --version 1.0.0 --json",
+      "command": "uv run --no-cache veriseal verify --file tests/fixtures/contoh-app.txt --bundle tests/results/_work/U01-ecdsa-p256-sha256-text.json --trust-store tests/results/_work/trust.json --package contoh-app --version 1.0.0 --json",
       "expected": {
         "exit_code": 0,
         "status": "OK",
@@ -84,7 +84,7 @@
         "exit_code": 0,
         "status": "OK",
         "valid": true,
-        "stdout": "{\"valid\":true,\"status\":\"OK\",\"message\":\"Signature and artifact are valid.\",\"algorithm\":\"ecdsa-p256-sha256\",\"keyid\":\"8800576f7e927b94b28c55be757dff9f4dc06614b255d3d90942fb4192ba0d2b\",\"package\":\"contoh-app\",\"version\":\"1.0.0\"}",
+        "stdout": "{\"valid\": true, \"status\": \"OK\", \"message\": \"Signature and artifact are valid.\", \"algorithm\": \"ecdsa-p256-sha256\", \"keyid\": \"a0c50854271e3105edfa1785d7a8c000d2275e4b936e1c06462c311cdb43cc80\", \"package\": \"contoh-app\", \"version\": \"1.0.0\"}",
         "stderr": ""
       },
       "notes": "",
@@ -95,7 +95,7 @@
       "scenario": "Sign and verify binary file (4096 B)",
       "profile": "ecdsa-p256-sha256",
       "input_files": "tests/fixtures/contoh-app.bin",
-      "command": ".venv/bin/python3 tests/mock_veriseal.py verify --file tests/fixtures/contoh-app.bin --bundle tests/results/_work/U01-ecdsa-p256-sha256-binary.json --trust-store tests/results/_work/trust.json --package contoh-app --version 1.0.0 --json",
+      "command": "uv run --no-cache veriseal verify --file tests/fixtures/contoh-app.bin --bundle tests/results/_work/U01-ecdsa-p256-sha256-binary.json --trust-store tests/results/_work/trust.json --package contoh-app --version 1.0.0 --json",
       "expected": {
         "exit_code": 0,
         "status": "OK",
@@ -105,7 +105,7 @@
         "exit_code": 0,
         "status": "OK",
         "valid": true,
-        "stdout": "{\"valid\":true,\"status\":\"OK\",\"message\":\"Signature and artifact are valid.\",\"algorithm\":\"ecdsa-p256-sha256\",\"keyid\":\"8800576f7e927b94b28c55be757dff9f4dc06614b255d3d90942fb4192ba0d2b\",\"package\":\"contoh-app\",\"version\":\"1.0.0\"}",
+        "stdout": "{\"valid\": true, \"status\": \"OK\", \"message\": \"Signature and artifact are valid.\", \"algorithm\": \"ecdsa-p256-sha256\", \"keyid\": \"a0c50854271e3105edfa1785d7a8c000d2275e4b936e1c06462c311cdb43cc80\", \"package\": \"contoh-app\", \"version\": \"1.0.0\"}",
         "stderr": ""
       },
       "notes": "",
@@ -116,7 +116,7 @@
       "scenario": "Sign and verify empty file (0 B)",
       "profile": "ecdsa-p256-sha256",
       "input_files": "tests/fixtures/empty.dat",
-      "command": ".venv/bin/python3 tests/mock_veriseal.py verify --file tests/fixtures/empty.dat --bundle tests/results/_work/U01-ecdsa-p256-sha256-empty.json --trust-store tests/results/_work/trust.json --package contoh-app --version 1.0.0 --json",
+      "command": "uv run --no-cache veriseal verify --file tests/fixtures/empty.dat --bundle tests/results/_work/U01-ecdsa-p256-sha256-empty.json --trust-store tests/results/_work/trust.json --package contoh-app --version 1.0.0 --json",
       "expected": {
         "exit_code": 0,
         "status": "OK",
@@ -126,7 +126,7 @@
         "exit_code": 0,
         "status": "OK",
         "valid": true,
-        "stdout": "{\"valid\":true,\"status\":\"OK\",\"message\":\"Signature and artifact are valid.\",\"algorithm\":\"ecdsa-p256-sha256\",\"keyid\":\"8800576f7e927b94b28c55be757dff9f4dc06614b255d3d90942fb4192ba0d2b\",\"package\":\"contoh-app\",\"version\":\"1.0.0\"}",
+        "stdout": "{\"valid\": true, \"status\": \"OK\", \"message\": \"Signature and artifact are valid.\", \"algorithm\": \"ecdsa-p256-sha256\", \"keyid\": \"a0c50854271e3105edfa1785d7a8c000d2275e4b936e1c06462c311cdb43cc80\", \"package\": \"contoh-app\", \"version\": \"1.0.0\"}",
         "stderr": ""
       },
       "notes": "",
@@ -137,7 +137,7 @@
       "scenario": "Sign and verify text file (37 B)",
       "profile": "ed25519",
       "input_files": "tests/fixtures/contoh-app.txt",
-      "command": ".venv/bin/python3 tests/mock_veriseal.py verify --file tests/fixtures/contoh-app.txt --bundle tests/results/_work/U01-ed25519-text.json --trust-store tests/results/_work/trust.json --package contoh-app --version 1.0.0 --json",
+      "command": "uv run --no-cache veriseal verify --file tests/fixtures/contoh-app.txt --bundle tests/results/_work/U01-ed25519-text.json --trust-store tests/results/_work/trust.json --package contoh-app --version 1.0.0 --json",
       "expected": {
         "exit_code": 0,
         "status": "OK",
@@ -147,7 +147,7 @@
         "exit_code": 0,
         "status": "OK",
         "valid": true,
-        "stdout": "{\"valid\":true,\"status\":\"OK\",\"message\":\"Signature and artifact are valid.\",\"algorithm\":\"ed25519\",\"keyid\":\"034f4f0ba6ed18878da8989b09ef8efc98438ffcc5fe2a882584d8a8e48792c7\",\"package\":\"contoh-app\",\"version\":\"1.0.0\"}",
+        "stdout": "{\"valid\": true, \"status\": \"OK\", \"message\": \"Signature and artifact are valid.\", \"algorithm\": \"ed25519\", \"keyid\": \"9485a599327a95f4ae3acf84e4b3214931fa9c284012c3d334fffb872ebffe76\", \"package\": \"contoh-app\", \"version\": \"1.0.0\"}",
         "stderr": ""
       },
       "notes": "",
@@ -158,7 +158,7 @@
       "scenario": "Sign and verify binary file (4096 B)",
       "profile": "ed25519",
       "input_files": "tests/fixtures/contoh-app.bin",
-      "command": ".venv/bin/python3 tests/mock_veriseal.py verify --file tests/fixtures/contoh-app.bin --bundle tests/results/_work/U01-ed25519-binary.json --trust-store tests/results/_work/trust.json --package contoh-app --version 1.0.0 --json",
+      "command": "uv run --no-cache veriseal verify --file tests/fixtures/contoh-app.bin --bundle tests/results/_work/U01-ed25519-binary.json --trust-store tests/results/_work/trust.json --package contoh-app --version 1.0.0 --json",
       "expected": {
         "exit_code": 0,
         "status": "OK",
@@ -168,7 +168,7 @@
         "exit_code": 0,
         "status": "OK",
         "valid": true,
-        "stdout": "{\"valid\":true,\"status\":\"OK\",\"message\":\"Signature and artifact are valid.\",\"algorithm\":\"ed25519\",\"keyid\":\"034f4f0ba6ed18878da8989b09ef8efc98438ffcc5fe2a882584d8a8e48792c7\",\"package\":\"contoh-app\",\"version\":\"1.0.0\"}",
+        "stdout": "{\"valid\": true, \"status\": \"OK\", \"message\": \"Signature and artifact are valid.\", \"algorithm\": \"ed25519\", \"keyid\": \"9485a599327a95f4ae3acf84e4b3214931fa9c284012c3d334fffb872ebffe76\", \"package\": \"contoh-app\", \"version\": \"1.0.0\"}",
         "stderr": ""
       },
       "notes": "",
@@ -179,7 +179,7 @@
       "scenario": "Sign and verify empty file (0 B)",
       "profile": "ed25519",
       "input_files": "tests/fixtures/empty.dat",
-      "command": ".venv/bin/python3 tests/mock_veriseal.py verify --file tests/fixtures/empty.dat --bundle tests/results/_work/U01-ed25519-empty.json --trust-store tests/results/_work/trust.json --package contoh-app --version 1.0.0 --json",
+      "command": "uv run --no-cache veriseal verify --file tests/fixtures/empty.dat --bundle tests/results/_work/U01-ed25519-empty.json --trust-store tests/results/_work/trust.json --package contoh-app --version 1.0.0 --json",
       "expected": {
         "exit_code": 0,
         "status": "OK",
@@ -189,7 +189,7 @@
         "exit_code": 0,
         "status": "OK",
         "valid": true,
-        "stdout": "{\"valid\":true,\"status\":\"OK\",\"message\":\"Signature and artifact are valid.\",\"algorithm\":\"ed25519\",\"keyid\":\"034f4f0ba6ed18878da8989b09ef8efc98438ffcc5fe2a882584d8a8e48792c7\",\"package\":\"contoh-app\",\"version\":\"1.0.0\"}",
+        "stdout": "{\"valid\": true, \"status\": \"OK\", \"message\": \"Signature and artifact are valid.\", \"algorithm\": \"ed25519\", \"keyid\": \"9485a599327a95f4ae3acf84e4b3214931fa9c284012c3d334fffb872ebffe76\", \"package\": \"contoh-app\", \"version\": \"1.0.0\"}",
         "stderr": ""
       },
       "notes": "",
@@ -200,7 +200,7 @@
       "scenario": "Modify 1 byte in artifact preserving size and filename",
       "profile": "ed25519",
       "input_files": "tests/fixtures/contoh-app.zip (1B flipped)",
-      "command": ".venv/bin/python3 tests/mock_veriseal.py verify --file tests/results/_work/u02/contoh-app.zip --bundle tests/results/_work/ref_bundle.json --trust-store tests/results/_work/trust.json --package contoh-app --version 1.0.0 --json",
+      "command": "uv run --no-cache veriseal verify --file tests/results/_work/u02/contoh-app.zip --bundle tests/results/_work/ref_bundle.json --trust-store tests/results/_work/trust.json --package contoh-app --version 1.0.0 --json",
       "expected": {
         "exit_code": 1,
         "status": "ARTIFACT_MISMATCH",
@@ -210,8 +210,8 @@
         "exit_code": 1,
         "status": "ARTIFACT_MISMATCH",
         "valid": false,
-        "stdout": "{\"valid\":false,\"status\":\"ARTIFACT_MISMATCH\",\"message\":\"Artifact size or SHA-256 mismatch\",\"algorithm\":\"ed25519\",\"keyid\":\"034f4f0ba6ed18878da8989b09ef8efc98438ffcc5fe2a882584d8a8e48792c7\",\"package\":\"contoh-app\",\"version\":\"1.0.0\"}",
-        "stderr": "ARTIFACT_MISMATCH: Artifact size or SHA-256 mismatch"
+        "stdout": "{\"valid\": false, \"status\": \"ARTIFACT_MISMATCH\", \"message\": \"artifact SHA-256 does not match the manifest\", \"algorithm\": \"ed25519\", \"keyid\": \"9485a599327a95f4ae3acf84e4b3214931fa9c284012c3d334fffb872ebffe76\", \"package\": \"contoh-app\", \"version\": \"1.0.0\"}",
+        "stderr": "veriseal: ARTIFACT_MISMATCH: artifact SHA-256 does not match the manifest"
       },
       "notes": "",
       "passed": true
@@ -221,7 +221,7 @@
       "scenario": "Append 1 byte to artifact",
       "profile": "ed25519",
       "input_files": "tests/fixtures/contoh-app.zip (+1B)",
-      "command": ".venv/bin/python3 tests/mock_veriseal.py verify --file tests/results/_work/U03a/contoh-app.zip --bundle tests/results/_work/ref_bundle.json --trust-store tests/results/_work/trust.json --package contoh-app --version 1.0.0 --json",
+      "command": "uv run --no-cache veriseal verify --file tests/results/_work/U03a/contoh-app.zip --bundle tests/results/_work/ref_bundle.json --trust-store tests/results/_work/trust.json --package contoh-app --version 1.0.0 --json",
       "expected": {
         "exit_code": 1,
         "status": "ARTIFACT_MISMATCH",
@@ -231,8 +231,8 @@
         "exit_code": 1,
         "status": "ARTIFACT_MISMATCH",
         "valid": false,
-        "stdout": "{\"valid\":false,\"status\":\"ARTIFACT_MISMATCH\",\"message\":\"Artifact size or SHA-256 mismatch\",\"algorithm\":\"ed25519\",\"keyid\":\"034f4f0ba6ed18878da8989b09ef8efc98438ffcc5fe2a882584d8a8e48792c7\",\"package\":\"contoh-app\",\"version\":\"1.0.0\"}",
-        "stderr": "ARTIFACT_MISMATCH: Artifact size or SHA-256 mismatch"
+        "stdout": "{\"valid\": false, \"status\": \"ARTIFACT_MISMATCH\", \"message\": \"artifact size 1313 != manifest size 1312\", \"algorithm\": \"ed25519\", \"keyid\": \"9485a599327a95f4ae3acf84e4b3214931fa9c284012c3d334fffb872ebffe76\", \"package\": \"contoh-app\", \"version\": \"1.0.0\"}",
+        "stderr": "veriseal: ARTIFACT_MISMATCH: artifact size 1313 != manifest size 1312"
       },
       "notes": "",
       "passed": true
@@ -242,7 +242,7 @@
       "scenario": "Truncate 1 byte from artifact",
       "profile": "ed25519",
       "input_files": "tests/fixtures/contoh-app.zip (-1B)",
-      "command": ".venv/bin/python3 tests/mock_veriseal.py verify --file tests/results/_work/U03b/contoh-app.zip --bundle tests/results/_work/ref_bundle.json --trust-store tests/results/_work/trust.json --package contoh-app --version 1.0.0 --json",
+      "command": "uv run --no-cache veriseal verify --file tests/results/_work/U03b/contoh-app.zip --bundle tests/results/_work/ref_bundle.json --trust-store tests/results/_work/trust.json --package contoh-app --version 1.0.0 --json",
       "expected": {
         "exit_code": 1,
         "status": "ARTIFACT_MISMATCH",
@@ -252,8 +252,8 @@
         "exit_code": 1,
         "status": "ARTIFACT_MISMATCH",
         "valid": false,
-        "stdout": "{\"valid\":false,\"status\":\"ARTIFACT_MISMATCH\",\"message\":\"Artifact size or SHA-256 mismatch\",\"algorithm\":\"ed25519\",\"keyid\":\"034f4f0ba6ed18878da8989b09ef8efc98438ffcc5fe2a882584d8a8e48792c7\",\"package\":\"contoh-app\",\"version\":\"1.0.0\"}",
-        "stderr": "ARTIFACT_MISMATCH: Artifact size or SHA-256 mismatch"
+        "stdout": "{\"valid\": false, \"status\": \"ARTIFACT_MISMATCH\", \"message\": \"artifact size 1311 != manifest size 1312\", \"algorithm\": \"ed25519\", \"keyid\": \"9485a599327a95f4ae3acf84e4b3214931fa9c284012c3d334fffb872ebffe76\", \"package\": \"contoh-app\", \"version\": \"1.0.0\"}",
+        "stderr": "veriseal: ARTIFACT_MISMATCH: artifact size 1311 != manifest size 1312"
       },
       "notes": "",
       "passed": true
@@ -263,7 +263,7 @@
       "scenario": "Modify manifest version (1.0.0 -> 1.0.1) reusing old signature",
       "profile": "ed25519",
       "input_files": "tests/fixtures/contoh-app.zip + tampered manifest_b64",
-      "command": ".venv/bin/python3 tests/mock_veriseal.py verify --file tests/fixtures/contoh-app.zip --bundle tests/results/_work/u04_bundle.json --trust-store tests/results/_work/trust.json --package contoh-app --version 1.0.1 --json",
+      "command": "uv run --no-cache veriseal verify --file tests/fixtures/contoh-app.zip --bundle tests/results/_work/u04_bundle.json --trust-store tests/results/_work/trust.json --package contoh-app --version 1.0.1 --json",
       "expected": {
         "exit_code": 1,
         "status": "INVALID_SIGNATURE",
@@ -273,8 +273,8 @@
         "exit_code": 1,
         "status": "INVALID_SIGNATURE",
         "valid": false,
-        "stdout": "{\"valid\":false,\"status\":\"INVALID_SIGNATURE\",\"message\":\"Signature verification failed\",\"algorithm\":\"ed25519\",\"keyid\":\"034f4f0ba6ed18878da8989b09ef8efc98438ffcc5fe2a882584d8a8e48792c7\",\"package\":\"contoh-app\",\"version\":\"1.0.1\"}",
-        "stderr": "INVALID_SIGNATURE: Signature verification failed"
+        "stdout": "{\"valid\": false, \"status\": \"INVALID_SIGNATURE\", \"message\": \"signature does not verify with the trusted key\", \"algorithm\": \"ed25519\", \"keyid\": \"9485a599327a95f4ae3acf84e4b3214931fa9c284012c3d334fffb872ebffe76\", \"package\": \"contoh-app\", \"version\": \"1.0.1\"}",
+        "stderr": "veriseal: INVALID_SIGNATURE: signature does not verify with the trusted key"
       },
       "notes": "",
       "passed": true
@@ -284,7 +284,7 @@
       "scenario": "Flip 1 bit in signature_b64 preserving byte length",
       "profile": "ed25519",
       "input_files": "tests/fixtures/contoh-app.zip + 1-bit flipped signature_b64",
-      "command": ".venv/bin/python3 tests/mock_veriseal.py verify --file tests/fixtures/contoh-app.zip --bundle tests/results/_work/u05_bundle.json --trust-store tests/results/_work/trust.json --package contoh-app --version 1.0.0 --json",
+      "command": "uv run --no-cache veriseal verify --file tests/fixtures/contoh-app.zip --bundle tests/results/_work/u05_bundle.json --trust-store tests/results/_work/trust.json --package contoh-app --version 1.0.0 --json",
       "expected": {
         "exit_code": 1,
         "status": "INVALID_SIGNATURE",
@@ -294,8 +294,8 @@
         "exit_code": 1,
         "status": "INVALID_SIGNATURE",
         "valid": false,
-        "stdout": "{\"valid\":false,\"status\":\"INVALID_SIGNATURE\",\"message\":\"Signature verification failed\",\"algorithm\":\"ed25519\",\"keyid\":\"034f4f0ba6ed18878da8989b09ef8efc98438ffcc5fe2a882584d8a8e48792c7\",\"package\":\"contoh-app\",\"version\":\"1.0.0\"}",
-        "stderr": "INVALID_SIGNATURE: Signature verification failed"
+        "stdout": "{\"valid\": false, \"status\": \"INVALID_SIGNATURE\", \"message\": \"signature does not verify with the trusted key\", \"algorithm\": \"ed25519\", \"keyid\": \"9485a599327a95f4ae3acf84e4b3214931fa9c284012c3d334fffb872ebffe76\", \"package\": \"contoh-app\", \"version\": \"1.0.0\"}",
+        "stderr": "veriseal: INVALID_SIGNATURE: signature does not verify with the trusted key"
       },
       "notes": "",
       "passed": true
@@ -305,7 +305,7 @@
       "scenario": "Verify using an empty trust store",
       "profile": "ed25519",
       "input_files": "tests/fixtures/contoh-app.zip + empty trust store",
-      "command": ".venv/bin/python3 tests/mock_veriseal.py verify --file tests/fixtures/contoh-app.zip --bundle tests/results/_work/ref_bundle.json --trust-store tests/results/_work/empty_trust.json --package contoh-app --version 1.0.0 --json",
+      "command": "uv run --no-cache veriseal verify --file tests/fixtures/contoh-app.zip --bundle tests/results/_work/ref_bundle.json --trust-store tests/results/_work/empty_trust.json --package contoh-app --version 1.0.0 --json",
       "expected": {
         "exit_code": 1,
         "status": "KEY_NOT_TRUSTED",
@@ -315,8 +315,8 @@
         "exit_code": 1,
         "status": "KEY_NOT_TRUSTED",
         "valid": false,
-        "stdout": "{\"valid\":false,\"status\":\"KEY_NOT_TRUSTED\",\"message\":\"Key is not trusted for this package and algorithm\",\"algorithm\":\"ed25519\",\"keyid\":\"034f4f0ba6ed18878da8989b09ef8efc98438ffcc5fe2a882584d8a8e48792c7\",\"package\":\"contoh-app\",\"version\":\"1.0.0\"}",
-        "stderr": "KEY_NOT_TRUSTED: Key is not trusted for this package and algorithm"
+        "stdout": "{\"valid\": false, \"status\": \"KEY_NOT_TRUSTED\", \"message\": \"keyid is not in the trust store\", \"algorithm\": \"ed25519\", \"keyid\": \"9485a599327a95f4ae3acf84e4b3214931fa9c284012c3d334fffb872ebffe76\", \"package\": \"contoh-app\", \"version\": \"1.0.0\"}",
+        "stderr": "veriseal: KEY_NOT_TRUSTED: keyid is not in the trust store"
       },
       "notes": "",
       "passed": true
@@ -326,7 +326,7 @@
       "scenario": "Remove publisher key via trust remove prior to verify",
       "profile": "ed25519",
       "input_files": "tests/fixtures/contoh-app.zip + trust store after trust remove",
-      "command": ".venv/bin/python3 tests/mock_veriseal.py verify --file tests/fixtures/contoh-app.zip --bundle tests/results/_work/ref_bundle.json --trust-store tests/results/_work/removed_trust.json --package contoh-app --version 1.0.0 --json",
+      "command": "uv run --no-cache veriseal verify --file tests/fixtures/contoh-app.zip --bundle tests/results/_work/ref_bundle.json --trust-store tests/results/_work/removed_trust.json --package contoh-app --version 1.0.0 --json",
       "expected": {
         "exit_code": 1,
         "status": "KEY_NOT_TRUSTED",
@@ -336,8 +336,8 @@
         "exit_code": 1,
         "status": "KEY_NOT_TRUSTED",
         "valid": false,
-        "stdout": "{\"valid\":false,\"status\":\"KEY_NOT_TRUSTED\",\"message\":\"Key is not trusted for this package and algorithm\",\"algorithm\":\"ed25519\",\"keyid\":\"034f4f0ba6ed18878da8989b09ef8efc98438ffcc5fe2a882584d8a8e48792c7\",\"package\":\"contoh-app\",\"version\":\"1.0.0\"}",
-        "stderr": "KEY_NOT_TRUSTED: Key is not trusted for this package and algorithm"
+        "stdout": "{\"valid\": false, \"status\": \"KEY_NOT_TRUSTED\", \"message\": \"keyid is not in the trust store\", \"algorithm\": \"ed25519\", \"keyid\": \"9485a599327a95f4ae3acf84e4b3214931fa9c284012c3d334fffb872ebffe76\", \"package\": \"contoh-app\", \"version\": \"1.0.0\"}",
+        "stderr": "veriseal: KEY_NOT_TRUSTED: keyid is not in the trust store"
       },
       "notes": "",
       "passed": true
@@ -347,7 +347,7 @@
       "scenario": "Verify with key only authorized for 'other-pkg'",
       "profile": "ed25519",
       "input_files": "tests/fixtures/contoh-app.zip + trust store (pkg=other-pkg)",
-      "command": ".venv/bin/python3 tests/mock_veriseal.py verify --file tests/fixtures/contoh-app.zip --bundle tests/results/_work/ref_bundle.json --trust-store tests/results/_work/other_trust.json --package contoh-app --version 1.0.0 --json",
+      "command": "uv run --no-cache veriseal verify --file tests/fixtures/contoh-app.zip --bundle tests/results/_work/ref_bundle.json --trust-store tests/results/_work/other_trust.json --package contoh-app --version 1.0.0 --json",
       "expected": {
         "exit_code": 1,
         "status": "KEY_NOT_TRUSTED",
@@ -357,8 +357,8 @@
         "exit_code": 1,
         "status": "KEY_NOT_TRUSTED",
         "valid": false,
-        "stdout": "{\"valid\":false,\"status\":\"KEY_NOT_TRUSTED\",\"message\":\"Key is not trusted for this package and algorithm\",\"algorithm\":\"ed25519\",\"keyid\":\"034f4f0ba6ed18878da8989b09ef8efc98438ffcc5fe2a882584d8a8e48792c7\",\"package\":\"contoh-app\",\"version\":\"1.0.0\"}",
-        "stderr": "KEY_NOT_TRUSTED: Key is not trusted for this package and algorithm"
+        "stdout": "{\"valid\": false, \"status\": \"KEY_NOT_TRUSTED\", \"message\": \"key is not authorized for package 'contoh-app'\", \"algorithm\": \"ed25519\", \"keyid\": \"9485a599327a95f4ae3acf84e4b3214931fa9c284012c3d334fffb872ebffe76\", \"package\": \"contoh-app\", \"version\": \"1.0.0\"}",
+        "stderr": "veriseal: KEY_NOT_TRUSTED: key is not authorized for package 'contoh-app'"
       },
       "notes": "",
       "passed": true
@@ -368,7 +368,7 @@
       "scenario": "Verify valid v1.0.0 bundle with expected --version 2.0.0",
       "profile": "ed25519",
       "input_files": "tests/fixtures/contoh-app.zip (--version 2.0.0)",
-      "command": ".venv/bin/python3 tests/mock_veriseal.py verify --file tests/fixtures/contoh-app.zip --bundle tests/results/_work/ref_bundle.json --trust-store tests/results/_work/trust.json --package contoh-app --version 2.0.0 --json",
+      "command": "uv run --no-cache veriseal verify --file tests/fixtures/contoh-app.zip --bundle tests/results/_work/ref_bundle.json --trust-store tests/results/_work/trust.json --package contoh-app --version 2.0.0 --json",
       "expected": {
         "exit_code": 1,
         "status": "METADATA_MISMATCH",
@@ -378,8 +378,8 @@
         "exit_code": 1,
         "status": "METADATA_MISMATCH",
         "valid": false,
-        "stdout": "{\"valid\":false,\"status\":\"METADATA_MISMATCH\",\"message\":\"Package, version, or artifact filename mismatch\",\"algorithm\":\"ed25519\",\"keyid\":\"034f4f0ba6ed18878da8989b09ef8efc98438ffcc5fe2a882584d8a8e48792c7\",\"package\":\"contoh-app\",\"version\":\"1.0.0\"}",
-        "stderr": "METADATA_MISMATCH: Package, version, or artifact filename mismatch"
+        "stdout": "{\"valid\": false, \"status\": \"METADATA_MISMATCH\", \"message\": \"manifest version '1.0.0' != expected '2.0.0'\", \"algorithm\": \"ed25519\", \"keyid\": \"9485a599327a95f4ae3acf84e4b3214931fa9c284012c3d334fffb872ebffe76\", \"package\": \"contoh-app\", \"version\": \"1.0.0\"}",
+        "stderr": "veriseal: METADATA_MISMATCH: manifest version '1.0.0' != expected '2.0.0'"
       },
       "notes": "",
       "passed": true
@@ -389,7 +389,7 @@
       "scenario": "Rename artifact file to renamed-app.zip with identical bytes",
       "profile": "ed25519",
       "input_files": "tests/fixtures/contoh-app.zip renamed to renamed-app.zip",
-      "command": ".venv/bin/python3 tests/mock_veriseal.py verify --file tests/results/_work/renamed-app.zip --bundle tests/results/_work/ref_bundle.json --trust-store tests/results/_work/trust.json --package contoh-app --version 1.0.0 --json",
+      "command": "uv run --no-cache veriseal verify --file tests/results/_work/renamed-app.zip --bundle tests/results/_work/ref_bundle.json --trust-store tests/results/_work/trust.json --package contoh-app --version 1.0.0 --json",
       "expected": {
         "exit_code": 1,
         "status": "METADATA_MISMATCH",
@@ -399,8 +399,8 @@
         "exit_code": 1,
         "status": "METADATA_MISMATCH",
         "valid": false,
-        "stdout": "{\"valid\":false,\"status\":\"METADATA_MISMATCH\",\"message\":\"Package, version, or artifact filename mismatch\",\"algorithm\":\"ed25519\",\"keyid\":\"034f4f0ba6ed18878da8989b09ef8efc98438ffcc5fe2a882584d8a8e48792c7\",\"package\":\"contoh-app\",\"version\":\"1.0.0\"}",
-        "stderr": "METADATA_MISMATCH: Package, version, or artifact filename mismatch"
+        "stdout": "{\"valid\": false, \"status\": \"METADATA_MISMATCH\", \"message\": \"manifest artifact name 'contoh-app.zip' != file name 'renamed-app.zip'\", \"algorithm\": \"ed25519\", \"keyid\": \"9485a599327a95f4ae3acf84e4b3214931fa9c284012c3d334fffb872ebffe76\", \"package\": \"contoh-app\", \"version\": \"1.0.0\"}",
+        "stderr": "veriseal: METADATA_MISMATCH: manifest artifact name 'contoh-app.zip' != file name 'renamed-app.zip'"
       },
       "notes": "",
       "passed": true
@@ -410,7 +410,7 @@
       "scenario": "Reject duplicate JSON field name in bundle",
       "profile": "ed25519",
       "input_files": "tests/fixtures/contoh-app.zip + bundle with duplicate key",
-      "command": ".venv/bin/python3 tests/mock_veriseal.py verify --file tests/fixtures/contoh-app.zip --bundle tests/results/_work/u10a.json --trust-store tests/results/_work/trust.json --package contoh-app --version 1.0.0 --json",
+      "command": "uv run --no-cache veriseal verify --file tests/fixtures/contoh-app.zip --bundle tests/results/_work/u10a.json --trust-store tests/results/_work/trust.json --package contoh-app --version 1.0.0 --json",
       "expected": {
         "exit_code": 1,
         "status": "FORMAT_ERROR",
@@ -420,8 +420,8 @@
         "exit_code": 1,
         "status": "FORMAT_ERROR",
         "valid": false,
-        "stdout": "{\"valid\":false,\"status\":\"FORMAT_ERROR\",\"message\":\"Format error: Duplicate JSON key: schema\",\"algorithm\":null,\"keyid\":null,\"package\":null,\"version\":null}",
-        "stderr": "FORMAT_ERROR: Format error: Duplicate JSON key: schema"
+        "stdout": "{\"valid\": false, \"status\": \"FORMAT_ERROR\", \"message\": \"duplicate JSON field: 'schema'\", \"algorithm\": null, \"keyid\": null, \"package\": null, \"version\": null}",
+        "stderr": "veriseal: FORMAT_ERROR: duplicate JSON field: 'schema'"
       },
       "notes": "",
       "passed": true
@@ -431,7 +431,7 @@
       "scenario": "Reject wrong data type in manifest (size = true)",
       "profile": "ed25519",
       "input_files": "tests/fixtures/contoh-app.zip + manifest with boolean size",
-      "command": ".venv/bin/python3 tests/mock_veriseal.py verify --file tests/fixtures/contoh-app.zip --bundle tests/results/_work/u10b.json --trust-store tests/results/_work/trust.json --package contoh-app --version 1.0.0 --json",
+      "command": "uv run --no-cache veriseal verify --file tests/fixtures/contoh-app.zip --bundle tests/results/_work/u10b.json --trust-store tests/results/_work/trust.json --package contoh-app --version 1.0.0 --json",
       "expected": {
         "exit_code": 1,
         "status": "FORMAT_ERROR",
@@ -441,8 +441,8 @@
         "exit_code": 1,
         "status": "FORMAT_ERROR",
         "valid": false,
-        "stdout": "{\"valid\":false,\"status\":\"FORMAT_ERROR\",\"message\":\"Format error: Invalid artifact.size type\",\"algorithm\":null,\"keyid\":null,\"package\":null,\"version\":null}",
-        "stderr": "FORMAT_ERROR: Format error: Invalid artifact.size type"
+        "stdout": "{\"valid\": false, \"status\": \"FORMAT_ERROR\", \"message\": \"manifest.artifact.size must be an integer\", \"algorithm\": null, \"keyid\": null, \"package\": null, \"version\": null}",
+        "stderr": "veriseal: FORMAT_ERROR: manifest.artifact.size must be an integer"
       },
       "notes": "",
       "passed": true
@@ -452,7 +452,7 @@
       "scenario": "Reject invalid Base64 in signature_b64",
       "profile": "ed25519",
       "input_files": "tests/fixtures/contoh-app.zip + bundle with invalid Base64",
-      "command": ".venv/bin/python3 tests/mock_veriseal.py verify --file tests/fixtures/contoh-app.zip --bundle tests/results/_work/u10c.json --trust-store tests/results/_work/trust.json --package contoh-app --version 1.0.0 --json",
+      "command": "uv run --no-cache veriseal verify --file tests/fixtures/contoh-app.zip --bundle tests/results/_work/u10c.json --trust-store tests/results/_work/trust.json --package contoh-app --version 1.0.0 --json",
       "expected": {
         "exit_code": 1,
         "status": "FORMAT_ERROR",
@@ -462,8 +462,8 @@
         "exit_code": 1,
         "status": "FORMAT_ERROR",
         "valid": false,
-        "stdout": "{\"valid\":false,\"status\":\"FORMAT_ERROR\",\"message\":\"Format error: Invalid Base64 encoding\",\"algorithm\":null,\"keyid\":null,\"package\":null,\"version\":null}",
-        "stderr": "FORMAT_ERROR: Format error: Invalid Base64 encoding"
+        "stdout": "{\"valid\": false, \"status\": \"FORMAT_ERROR\", \"message\": \"bundle.signature_b64 is not valid Base64\", \"algorithm\": null, \"keyid\": null, \"package\": null, \"version\": null}",
+        "stderr": "veriseal: FORMAT_ERROR: bundle.signature_b64 is not valid Base64"
       },
       "notes": "",
       "passed": true
@@ -473,7 +473,7 @@
       "scenario": "Reject manifest exceeding 16 KiB size limit",
       "profile": "ed25519",
       "input_files": "tests/fixtures/contoh-app.zip + >16 KiB manifest",
-      "command": ".venv/bin/python3 tests/mock_veriseal.py verify --file tests/fixtures/contoh-app.zip --bundle tests/results/_work/u10d.json --trust-store tests/results/_work/trust.json --package contoh-app --version 1.0.0 --json",
+      "command": "uv run --no-cache veriseal verify --file tests/fixtures/contoh-app.zip --bundle tests/results/_work/u10d.json --trust-store tests/results/_work/trust.json --package contoh-app --version 1.0.0 --json",
       "expected": {
         "exit_code": 1,
         "status": "FORMAT_ERROR",
@@ -483,8 +483,8 @@
         "exit_code": 1,
         "status": "FORMAT_ERROR",
         "valid": false,
-        "stdout": "{\"valid\":false,\"status\":\"FORMAT_ERROR\",\"message\":\"Format error: Manifest exceeds 16 KiB limit\",\"algorithm\":null,\"keyid\":null,\"package\":null,\"version\":null}",
-        "stderr": "FORMAT_ERROR: Format error: Manifest exceeds 16 KiB limit"
+        "stdout": "{\"valid\": false, \"status\": \"FORMAT_ERROR\", \"message\": \"manifest exceeds 16384 bytes\", \"algorithm\": null, \"keyid\": null, \"package\": null, \"version\": null}",
+        "stderr": "veriseal: FORMAT_ERROR: manifest exceeds 16384 bytes"
       },
       "notes": "",
       "passed": true
@@ -494,7 +494,7 @@
       "scenario": "Reject unsupported algorithm 'rsa-pkcs1-v15' in manifest",
       "profile": "rsa-pkcs1-v15",
       "input_files": "tests/fixtures/contoh-app.zip + manifest alg=rsa-pkcs1-v15",
-      "command": ".venv/bin/python3 tests/mock_veriseal.py verify --file tests/fixtures/contoh-app.zip --bundle tests/results/_work/u11.json --trust-store tests/results/_work/trust.json --package contoh-app --version 1.0.0 --json",
+      "command": "uv run --no-cache veriseal verify --file tests/fixtures/contoh-app.zip --bundle tests/results/_work/u11.json --trust-store tests/results/_work/trust.json --package contoh-app --version 1.0.0 --json",
       "expected": {
         "exit_code": 1,
         "status": "UNSUPPORTED_ALGORITHM",
@@ -504,8 +504,8 @@
         "exit_code": 1,
         "status": "UNSUPPORTED_ALGORITHM",
         "valid": false,
-        "stdout": "{\"valid\":false,\"status\":\"UNSUPPORTED_ALGORITHM\",\"message\":\"Unsupported algorithm: rsa-pkcs1-v15\",\"algorithm\":\"rsa-pkcs1-v15\",\"keyid\":\"034f4f0ba6ed18878da8989b09ef8efc98438ffcc5fe2a882584d8a8e48792c7\",\"package\":\"contoh-app\",\"version\":\"1.0.0\"}",
-        "stderr": "UNSUPPORTED_ALGORITHM: Unsupported algorithm: rsa-pkcs1-v15"
+        "stdout": "{\"valid\": false, \"status\": \"UNSUPPORTED_ALGORITHM\", \"message\": \"unsupported algorithm 'rsa-pkcs1-v15'\", \"algorithm\": \"rsa-pkcs1-v15\", \"keyid\": \"9485a599327a95f4ae3acf84e4b3214931fa9c284012c3d334fffb872ebffe76\", \"package\": \"contoh-app\", \"version\": \"1.0.0\"}",
+        "stderr": "veriseal: UNSUPPORTED_ALGORITHM: unsupported algorithm 'rsa-pkcs1-v15'"
       },
       "notes": "",
       "passed": true
@@ -515,7 +515,7 @@
       "scenario": "Sign with untrusted key K2 of same profile",
       "profile": "ed25519",
       "input_files": "tests/fixtures/contoh-app.zip signed by untrusted K2",
-      "command": ".venv/bin/python3 tests/mock_veriseal.py verify --file tests/fixtures/contoh-app.zip --bundle tests/results/_work/u12.json --trust-store tests/results/_work/trust.json --package contoh-app --version 1.0.0 --json",
+      "command": "uv run --no-cache veriseal verify --file tests/fixtures/contoh-app.zip --bundle tests/results/_work/u12.json --trust-store tests/results/_work/trust.json --package contoh-app --version 1.0.0 --json",
       "expected": {
         "exit_code": 1,
         "status": "KEY_NOT_TRUSTED",
@@ -525,8 +525,8 @@
         "exit_code": 1,
         "status": "KEY_NOT_TRUSTED",
         "valid": false,
-        "stdout": "{\"valid\":false,\"status\":\"KEY_NOT_TRUSTED\",\"message\":\"Key is not trusted for this package and algorithm\",\"algorithm\":\"ed25519\",\"keyid\":\"45b1a1017d907609b86dad163c67a801f47ee7f392b12c2ceb1f96ef934cb5a7\",\"package\":\"contoh-app\",\"version\":\"1.0.0\"}",
-        "stderr": "KEY_NOT_TRUSTED: Key is not trusted for this package and algorithm"
+        "stdout": "{\"valid\": false, \"status\": \"KEY_NOT_TRUSTED\", \"message\": \"keyid is not in the trust store\", \"algorithm\": \"ed25519\", \"keyid\": \"0e797d0ec4258253e6d4f1070769bb4f47e7a365cac69af88d175acbef070ba2\", \"package\": \"contoh-app\", \"version\": \"1.0.0\"}",
+        "stderr": "veriseal: KEY_NOT_TRUSTED: keyid is not in the trust store"
       },
       "notes": "",
       "passed": true
@@ -536,7 +536,7 @@
       "scenario": "Accept outer bundle with custom whitespace and reversed key order",
       "profile": "ed25519",
       "input_files": "tests/fixtures/contoh-app.zip + reformatted outer bundle JSON",
-      "command": ".venv/bin/python3 tests/mock_veriseal.py verify --file tests/fixtures/contoh-app.zip --bundle tests/results/_work/u13.json --trust-store tests/results/_work/trust.json --package contoh-app --version 1.0.0 --json",
+      "command": "uv run --no-cache veriseal verify --file tests/fixtures/contoh-app.zip --bundle tests/results/_work/u13.json --trust-store tests/results/_work/trust.json --package contoh-app --version 1.0.0 --json",
       "expected": {
         "exit_code": 0,
         "status": "OK",
@@ -546,7 +546,7 @@
         "exit_code": 0,
         "status": "OK",
         "valid": true,
-        "stdout": "{\"valid\":true,\"status\":\"OK\",\"message\":\"Signature and artifact are valid.\",\"algorithm\":\"ed25519\",\"keyid\":\"034f4f0ba6ed18878da8989b09ef8efc98438ffcc5fe2a882584d8a8e48792c7\",\"package\":\"contoh-app\",\"version\":\"1.0.0\"}",
+        "stdout": "{\"valid\": true, \"status\": \"OK\", \"message\": \"Signature and artifact are valid.\", \"algorithm\": \"ed25519\", \"keyid\": \"9485a599327a95f4ae3acf84e4b3214931fa9c284012c3d334fffb872ebffe76\", \"package\": \"contoh-app\", \"version\": \"1.0.0\"}",
         "stderr": ""
       },
       "notes": "",
@@ -557,7 +557,7 @@
       "scenario": "Sign twice, verify both & compare (Randomized 32B salt -> signatures differ)",
       "profile": "rsa-pss-sha256",
       "input_files": "tests/fixtures/contoh-app.zip (signed twice: bundle1 & bundle2)",
-      "command": ".venv/bin/python3 tests/mock_veriseal.py verify --file tests/fixtures/contoh-app.zip --bundle tests/results/_work/U14-rsa-pss-sha256-2.json --trust-store tests/results/_work/trust.json --package contoh-app --version 1.0.0 --json",
+      "command": "uv run --no-cache veriseal verify --file tests/fixtures/contoh-app.zip --bundle tests/results/_work/U14-rsa-pss-sha256-2.json --trust-store tests/results/_work/trust.json --package contoh-app --version 1.0.0 --json",
       "expected": {
         "exit_code": 0,
         "status": "OK",
@@ -567,7 +567,7 @@
         "exit_code": 0,
         "status": "OK",
         "valid": true,
-        "stdout": "{\"valid\":true,\"status\":\"OK\",\"message\":\"Signature and artifact are valid.\",\"algorithm\":\"rsa-pss-sha256\",\"keyid\":\"2a5923b6875f314ad009a72126210b106c614b8a35adcdbf7f73be8356c8e7da\",\"package\":\"contoh-app\",\"version\":\"1.0.0\"}",
+        "stdout": "{\"valid\": true, \"status\": \"OK\", \"message\": \"Signature and artifact are valid.\", \"algorithm\": \"rsa-pss-sha256\", \"keyid\": \"d25b51eabda69be4772ffeb2215de384b080163249647ee81d8d8b00ac33555c\", \"package\": \"contoh-app\", \"version\": \"1.0.0\"}",
         "stderr": ""
       },
       "notes": "Randomized 32B salt -> signatures differ",
@@ -575,10 +575,10 @@
     },
     {
       "id": "U14-ecdsa-p256-sha256",
-      "scenario": "Sign twice, verify both & compare (Deterministic RFC 6979 -> identical)",
+      "scenario": "Sign twice, verify both & compare (CSPRNG nonce -> differ)",
       "profile": "ecdsa-p256-sha256",
       "input_files": "tests/fixtures/contoh-app.zip (signed twice: bundle1 & bundle2)",
-      "command": ".venv/bin/python3 tests/mock_veriseal.py verify --file tests/fixtures/contoh-app.zip --bundle tests/results/_work/U14-ecdsa-p256-sha256-2.json --trust-store tests/results/_work/trust.json --package contoh-app --version 1.0.0 --json",
+      "command": "uv run --no-cache veriseal verify --file tests/fixtures/contoh-app.zip --bundle tests/results/_work/U14-ecdsa-p256-sha256-2.json --trust-store tests/results/_work/trust.json --package contoh-app --version 1.0.0 --json",
       "expected": {
         "exit_code": 0,
         "status": "OK",
@@ -588,10 +588,10 @@
         "exit_code": 0,
         "status": "OK",
         "valid": true,
-        "stdout": "{\"valid\":true,\"status\":\"OK\",\"message\":\"Signature and artifact are valid.\",\"algorithm\":\"ecdsa-p256-sha256\",\"keyid\":\"8800576f7e927b94b28c55be757dff9f4dc06614b255d3d90942fb4192ba0d2b\",\"package\":\"contoh-app\",\"version\":\"1.0.0\"}",
+        "stdout": "{\"valid\": true, \"status\": \"OK\", \"message\": \"Signature and artifact are valid.\", \"algorithm\": \"ecdsa-p256-sha256\", \"keyid\": \"a0c50854271e3105edfa1785d7a8c000d2275e4b936e1c06462c311cdb43cc80\", \"package\": \"contoh-app\", \"version\": \"1.0.0\"}",
         "stderr": ""
       },
-      "notes": "Deterministic RFC 6979 -> identical",
+      "notes": "CSPRNG nonce -> differ",
       "passed": true
     },
     {
@@ -599,7 +599,7 @@
       "scenario": "Sign twice, verify both & compare (Deterministic RFC 8032 -> signatures identical)",
       "profile": "ed25519",
       "input_files": "tests/fixtures/contoh-app.zip (signed twice: bundle1 & bundle2)",
-      "command": ".venv/bin/python3 tests/mock_veriseal.py verify --file tests/fixtures/contoh-app.zip --bundle tests/results/_work/U14-ed25519-2.json --trust-store tests/results/_work/trust.json --package contoh-app --version 1.0.0 --json",
+      "command": "uv run --no-cache veriseal verify --file tests/fixtures/contoh-app.zip --bundle tests/results/_work/U14-ed25519-2.json --trust-store tests/results/_work/trust.json --package contoh-app --version 1.0.0 --json",
       "expected": {
         "exit_code": 0,
         "status": "OK",
@@ -609,7 +609,7 @@
         "exit_code": 0,
         "status": "OK",
         "valid": true,
-        "stdout": "{\"valid\":true,\"status\":\"OK\",\"message\":\"Signature and artifact are valid.\",\"algorithm\":\"ed25519\",\"keyid\":\"034f4f0ba6ed18878da8989b09ef8efc98438ffcc5fe2a882584d8a8e48792c7\",\"package\":\"contoh-app\",\"version\":\"1.0.0\"}",
+        "stdout": "{\"valid\": true, \"status\": \"OK\", \"message\": \"Signature and artifact are valid.\", \"algorithm\": \"ed25519\", \"keyid\": \"9485a599327a95f4ae3acf84e4b3214931fa9c284012c3d334fffb872ebffe76\", \"package\": \"contoh-app\", \"version\": \"1.0.0\"}",
         "stderr": ""
       },
       "notes": "Deterministic RFC 8032 -> signatures identical",
@@ -620,7 +620,7 @@
       "scenario": "Sign and verify valid SBOM bound to release artifact",
       "profile": "ed25519",
       "input_files": "tests/fixtures/sbom.json + tests/fixtures/contoh-app.zip",
-      "command": ".venv/bin/python3 tests/mock_veriseal.py sbom verify --file tests/fixtures/sbom.json --bundle tests/results/_work/sbom0_bundle.json --artifact tests/fixtures/contoh-app.zip --artifact-bundle tests/results/_work/ref_bundle.json --trust-store tests/results/_work/trust.json --package contoh-app --version 1.0.0 --json",
+      "command": "uv run --no-cache veriseal sbom verify --file tests/fixtures/sbom.json --bundle tests/results/_work/sbom0_bundle.json --artifact tests/fixtures/contoh-app.zip --artifact-bundle tests/results/_work/ref_bundle.json --trust-store tests/results/_work/trust.json --package contoh-app --version 1.0.0 --json",
       "expected": {
         "exit_code": 0,
         "status": "OK",
@@ -630,7 +630,7 @@
         "exit_code": 0,
         "status": "OK",
         "valid": true,
-        "stdout": "{\"valid\":true,\"status\":\"OK\",\"message\":\"SBOM and referenced release artifact are valid.\",\"algorithm\":\"ed25519\",\"keyid\":\"034f4f0ba6ed18878da8989b09ef8efc98438ffcc5fe2a882584d8a8e48792c7\",\"package\":\"contoh-app\",\"version\":\"1.0.0\"}",
+        "stdout": "{\"valid\": true, \"status\": \"OK\", \"message\": \"SBOM, release artifact and their SHA-256 binding are valid.\", \"algorithm\": \"ed25519\", \"keyid\": \"9485a599327a95f4ae3acf84e4b3214931fa9c284012c3d334fffb872ebffe76\", \"package\": \"contoh-app\", \"version\": \"1.0.0\"}",
         "stderr": ""
       },
       "notes": "",
@@ -641,7 +641,7 @@
       "scenario": "Modify SBOM component after signing",
       "profile": "ed25519",
       "input_files": "tests/fixtures/sbom.json (tampered) + tests/fixtures/contoh-app.zip",
-      "command": ".venv/bin/python3 tests/mock_veriseal.py sbom verify --file tests/results/_work/sbom1.json --bundle tests/results/_work/sbom1_bundle.json --artifact tests/fixtures/contoh-app.zip --artifact-bundle tests/results/_work/ref_bundle.json --trust-store tests/results/_work/trust.json --package contoh-app --version 1.0.0 --json",
+      "command": "uv run --no-cache veriseal sbom verify --file tests/results/_work/sbom1.json --bundle tests/results/_work/sbom1_bundle.json --artifact tests/fixtures/contoh-app.zip --artifact-bundle tests/results/_work/ref_bundle.json --trust-store tests/results/_work/trust.json --package contoh-app --version 1.0.0 --json",
       "expected": {
         "exit_code": 1,
         "status": "ARTIFACT_MISMATCH",
@@ -651,8 +651,8 @@
         "exit_code": 1,
         "status": "ARTIFACT_MISMATCH",
         "valid": false,
-        "stdout": "{\"valid\":false,\"status\":\"ARTIFACT_MISMATCH\",\"message\":\"Artifact size or SHA-256 mismatch\",\"algorithm\":\"ed25519\",\"keyid\":\"034f4f0ba6ed18878da8989b09ef8efc98438ffcc5fe2a882584d8a8e48792c7\",\"package\":\"contoh-app\",\"version\":\"1.0.0\"}",
-        "stderr": "ARTIFACT_MISMATCH: Artifact size or SHA-256 mismatch"
+        "stdout": "{\"valid\": false, \"status\": \"ARTIFACT_MISMATCH\", \"message\": \"SBOM: artifact size 861 != manifest size 852\", \"algorithm\": \"ed25519\", \"keyid\": \"9485a599327a95f4ae3acf84e4b3214931fa9c284012c3d334fffb872ebffe76\", \"package\": \"contoh-app\", \"version\": \"1.0.0\"}",
+        "stderr": "veriseal: ARTIFACT_MISMATCH: SBOM: artifact size 861 != manifest size 852"
       },
       "notes": "",
       "passed": true
@@ -662,7 +662,7 @@
       "scenario": "Replace artifact A1 with validly signed A2 against A1 SBOM",
       "profile": "ed25519",
       "input_files": "tests/fixtures/sbom.json (for A1) + swapped A2 contoh-app.zip",
-      "command": ".venv/bin/python3 tests/mock_veriseal.py sbom verify --file tests/fixtures/sbom.json --bundle tests/results/_work/sbom2_bundle.json --artifact tests/results/_work/a2/contoh-app.zip --artifact-bundle tests/results/_work/a2/a2_bundle.json --trust-store tests/results/_work/trust.json --package contoh-app --version 1.0.0 --json",
+      "command": "uv run --no-cache veriseal sbom verify --file tests/fixtures/sbom.json --bundle tests/results/_work/sbom2_bundle.json --artifact tests/results/_work/a2/contoh-app.zip --artifact-bundle tests/results/_work/a2/a2_bundle.json --trust-store tests/results/_work/trust.json --package contoh-app --version 1.0.0 --json",
       "expected": {
         "exit_code": 1,
         "status": "ARTIFACT_MISMATCH",
@@ -672,8 +672,8 @@
         "exit_code": 1,
         "status": "ARTIFACT_MISMATCH",
         "valid": false,
-        "stdout": "{\"valid\":false,\"status\":\"ARTIFACT_MISMATCH\",\"message\":\"SBOM artifact SHA-256 binding mismatch\",\"algorithm\":\"ed25519\",\"keyid\":\"034f4f0ba6ed18878da8989b09ef8efc98438ffcc5fe2a882584d8a8e48792c7\",\"package\":\"contoh-app\",\"version\":\"1.0.0\"}",
-        "stderr": "ARTIFACT_MISMATCH: SBOM artifact SHA-256 binding mismatch"
+        "stdout": "{\"valid\": false, \"status\": \"ARTIFACT_MISMATCH\", \"message\": \"SBOM references SHA-256 1f58a8d8f303ecea8680d81335ddc303334e28e536c842b3b1d0c831ea6ff0f0 but the verified artifact is c939495fbf5df7553e5f854c1d9ba0753aad078d066c69f7a0e60ced7cbed1e0\", \"algorithm\": \"ed25519\", \"keyid\": \"9485a599327a95f4ae3acf84e4b3214931fa9c284012c3d334fffb872ebffe76\", \"package\": \"contoh-app\", \"version\": \"1.0.0\"}",
+        "stderr": "veriseal: ARTIFACT_MISMATCH: SBOM references SHA-256 1f58a8d8f303ecea8680d81335ddc303334e28e536c842b3b1d0c831ea6ff0f0 but the verified artifact is c939495fbf5df7553e5f854c1d9ba0753aad078d066c69f7a0e60ced7cbed1e0"
       },
       "notes": "",
       "passed": true

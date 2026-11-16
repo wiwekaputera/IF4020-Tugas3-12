@@ -648,14 +648,9 @@ def run_all_tests(runner: CliRunner) -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Run U01-U14 and SBOM black-box tests.")
-    parser.add_argument("--mock", action="store_true", help="Run against tests/mock_veriseal.py.")
-    args = parser.parse_args()
-    if args.mock:
-        base_cmd = [sys.executable, "tests/mock_veriseal.py"]
-        suite_cmd = "uv run python tests/run_tests.py --mock"
-    else:
-        base_cmd = shlex.split(os.environ.get("VERISEAL_CMD", "uv run --no-cache veriseal"))
-        suite_cmd = "uv run python tests/run_tests.py"
+    parser.parse_args()
+    base_cmd = shlex.split(os.environ.get("VERISEAL_CMD", "uv run --no-cache veriseal"))
+    suite_cmd = "uv run python tests/run_tests.py"
     os.chdir(ROOT_DIR)
     return run_all_tests(CliRunner(base_cmd=base_cmd, suite_cmd=suite_cmd, results_dir=RESULTS_DIR))
 
