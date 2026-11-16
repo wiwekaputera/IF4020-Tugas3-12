@@ -3,17 +3,13 @@
 ## How to Run (Tata Cara Menjalankan Pengujian)
 
 ```sh
-# Run against merged veriseal CLI:
 uv run python tests/run_tests.py
-
-# Run against standalone mock CLI (pre-merge dry run):
-uv run python tests/run_tests.py --mock
 ```
 
 ## Execution Metadata
 
-- **Test Suite Command:** `uv run python tests/run_tests.py --mock`
-- **Target CLI:** `.venv/bin/python3 tests/mock_veriseal.py`
+- **Test Suite Command:** `uv run python tests/run_tests.py`
+- **Target CLI:** `uv run --no-cache veriseal`
 - **Base Input Fixtures (`berkas masukan`):** `tests/fixtures/` (`contoh-app.txt`, `contoh-app.bin`, `empty.dat`, `contoh-app.zip`, `sbom.json`)
 - **Passed:** `32 / 32`
 
@@ -48,7 +44,7 @@ uv run python tests/run_tests.py --mock
 | `U12` | `ed25519` | `tests/fixtures/contoh-app.zip signed by untrusted K2` | Sign with untrusted key K2 of same profile | `1` / `KEY_NOT_TRUSTED` / `false` | `1` / `KEY_NOT_TRUSTED` / `false` | **PASS** |
 | `U13` | `ed25519` | `tests/fixtures/contoh-app.zip + reformatted outer bundle JSON` | Accept outer bundle with custom whitespace and reversed key order | `0` / `OK` / `true` | `0` / `OK` / `true` | **PASS** |
 | `U14-rsa-pss-sha256` | `rsa-pss-sha256` | `tests/fixtures/contoh-app.zip (signed twice: bundle1 & bundle2)` | Sign twice, verify both & compare (Randomized 32B salt -> signatures differ) | `0` / `OK` / `true` | `0` / `OK` / `true` | **PASS** |
-| `U14-ecdsa-p256-sha256` | `ecdsa-p256-sha256` | `tests/fixtures/contoh-app.zip (signed twice: bundle1 & bundle2)` | Sign twice, verify both & compare (Deterministic RFC 6979 -> identical) | `0` / `OK` / `true` | `0` / `OK` / `true` | **PASS** |
+| `U14-ecdsa-p256-sha256` | `ecdsa-p256-sha256` | `tests/fixtures/contoh-app.zip (signed twice: bundle1 & bundle2)` | Sign twice, verify both & compare (CSPRNG nonce -> differ) | `0` / `OK` / `true` | `0` / `OK` / `true` | **PASS** |
 | `U14-ed25519` | `ed25519` | `tests/fixtures/contoh-app.zip (signed twice: bundle1 & bundle2)` | Sign twice, verify both & compare (Deterministic RFC 8032 -> signatures identical) | `0` / `OK` / `true` | `0` / `OK` / `true` | **PASS** |
 | `SBOM00` | `ed25519` | `tests/fixtures/sbom.json + tests/fixtures/contoh-app.zip` | Sign and verify valid SBOM bound to release artifact | `0` / `OK` / `true` | `0` / `OK` / `true` | **PASS** |
 | `SBOM01` | `ed25519` | `tests/fixtures/sbom.json (tampered) + tests/fixtures/contoh-app.zip` | Modify SBOM component after signing | `1` / `ARTIFACT_MISMATCH` / `false` | `1` / `ARTIFACT_MISMATCH` / `false` | **PASS** |
