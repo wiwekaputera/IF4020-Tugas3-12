@@ -1,17 +1,5 @@
-"""Trust store validation and persistence.
-
-A trust store (``minisign-trust/v1``, Tabel 2.6) lists the public keys the
-verifier trusts and, for each key, the packages it may sign::
-
-    {"schema": "minisign-trust/v1",
-     "keys": [{"keyid": "<64 hex>", "algorithm": "ed25519",
-               "public_key_pem": "-----BEGIN PUBLIC KEY-----\\n...",
-               "packages": ["contoh-app"]}]}
-
-Loading validates every entry, including the embedded PEM (through
-``crypto.inspect_key``): wrong key type/parameters, a profile different from
-``algorithm`` or a ``keyid`` that does not match the key all raise
-:class:`~veriseal.formats.FormatError`. Saving is atomic.
+"""Trust store (``minisign-trust/v1``): trusted public keys and the packages
+each key may sign. Invalid entries raise :class:`~veriseal.formats.FormatError`.
 """
 
 from __future__ import annotations
@@ -47,7 +35,7 @@ class TrustEntry:
     packages: list[str]
 
     def to_json(self) -> dict:
-        """Return the entry as a JSON-ready dict (Tabel 2.6 field order)."""
+        """Return the entry as a JSON-ready dict in fixed field order."""
         return {
             "keyid": self.keyid,
             "algorithm": self.algorithm,
@@ -70,14 +58,9 @@ class TrustStore:
         return None
 
     def to_bytes(self) -> bytes:
-        """Serialize the store as pretty-printed UTF-8 JSON with a final newline."""
+        """Serialize the store as indented JSON."""
         doc = {"schema": TRUST_SCHEMA, "keys": [e.to_json() for e in self.keys]}
         return (json.dumps(doc, indent=2) + "\n").encode("utf-8")
-
-
-# ---------------------------------------------------------------------------
-# Validation
-# ---------------------------------------------------------------------------
 
 
 def _validate_packages(value: object, where: str) -> list[str]:
@@ -117,10 +100,7 @@ def _validate_entry(obj: object, where: str) -> TrustEntry:
 
 
 def parse_trust_store(data: bytes) -> TrustStore:
-    """Strictly parse and validate trust store bytes.
-
-    :raises FormatError: on any schema, type, uniqueness or key violation.
-    """
+    """Parse trust store bytes and check every entry, including its public key."""
     doc = require_object(strict_json_loads(data), TRUST_KEYS, "trust store")
     if doc["schema"] != TRUST_SCHEMA:
         raise FormatError(f"trust store schema must be {TRUST_SCHEMA!r}")
@@ -136,39 +116,22 @@ def parse_trust_store(data: bytes) -> TrustStore:
 
 
 def load_trust_store(path: str) -> TrustStore:
-    """Read and validate the trust store at ``path``.
-
-    :raises OSError: if the file cannot be read (maps to ``INPUT_ERROR``).
-    :raises FormatError: if its contents are invalid (maps to ``FORMAT_ERROR``).
-    """
+    """Read and validate the trust store at ``path``."""
     with open(path, "rb") as f:
         data = f.read()
     return parse_trust_store(data)
 
 
 def save_trust_store(path: str, store: TrustStore) -> None:
-    """Atomically write ``store`` to ``path`` (temp file + rename in same dir).
-
-    A failure never leaves a truncated or half-written trust store behind.
-    """
+    """Write ``store`` to ``path`` atomically."""
     atomic_write(path, store.to_bytes(), mode=0o644)
 
 
-# ---------------------------------------------------------------------------
-# Mutations used by `trust add` / `trust remove`
-# ---------------------------------------------------------------------------
-
-
 def add_key(store: TrustStore, public_key_pem: str, package: str) -> tuple[TrustEntry, bool]:
-    """Authorize a public key for ``package``.
-
-    * new key: a new entry is appended;
-    * known key, new package: the package is appended to the existing entry;
-    * known key and package: nothing changes (idempotent).
+    """Authorize a public key for ``package``. Adding an existing pair changes nothing.
 
     :returns: ``(entry, changed)``.
-    :raises ValueError: if the PEM is invalid, is a private key, or the
-        package name does not match the package pattern.
+    :raises ValueError: if the key is invalid or private, or the package name is invalid.
 
     Example::
 
@@ -192,10 +155,7 @@ def add_key(store: TrustStore, public_key_pem: str, package: str) -> tuple[Trust
 
 
 def remove_key(store: TrustStore, keyid: str) -> TrustEntry:
-    """Remove the entry with ``keyid`` and return it.
-
-    :raises KeyError: if no entry has this ``keyid``.
-    """
+    """Remove and return the entry with ``keyid``; raise KeyError if absent."""
     entry = store.lookup(keyid)
     if entry is None:
         raise KeyError(keyid)
@@ -204,5 +164,5 @@ def remove_key(store: TrustStore, keyid: str) -> TrustEntry:
 
 
 def store_exists(path: str) -> bool:
-    """Return True if something exists at ``path`` (file, dir or other)."""
+    """Return True if anything exists at ``path``."""
     return os.path.lexists(path)

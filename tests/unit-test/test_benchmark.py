@@ -7,7 +7,6 @@ from pathlib import Path
 from veriseal.contracts import PROFILES
 from veriseal.crypto import inspect_key
 
-# Import benchmark module
 import sys
 _REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 if str(_REPO_ROOT) not in sys.path:
@@ -33,7 +32,6 @@ def report(test_name: str, inp: str, expected: str, real: str, passed: bool) -> 
 
 class TestCryptoBenchmark(unittest.TestCase):
     def test_nearest_rank_p95(self):
-        # Empty check
         with self.assertRaises(ValueError):
             nearest_rank_p95([])
 

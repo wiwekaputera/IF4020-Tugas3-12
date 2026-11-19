@@ -1,4 +1,4 @@
-"""Micro-benchmarks and End-to-End CLI benchmarks for veriseal (Table 2.12)."""
+"""Micro-benchmarks and End-to-End CLI benchmarks for veriseal."""
 
 from __future__ import annotations
 
@@ -23,7 +23,7 @@ import cryptography
 from cryptography.hazmat.backends.openssl.backend import backend as openssl_backend
 from cryptography.hazmat.primitives import serialization
 
-# Add repo root to path for imports
+# Allow running without installing the package
 _ROOT = Path(__file__).resolve().parent.parent
 if str(_ROOT / "src") not in sys.path:
     sys.path.insert(0, str(_ROOT / "src"))
@@ -148,12 +148,10 @@ def measure_crypto_sign_verify(
     if not priv_pem or not pub_pem:
         priv_pem, pub_pem, _ = generate_keypair(profile)
 
-    # Warmup
     for _ in range(warmup):
         sig = sign_bytes(priv_pem, manifest_bytes)
         verify_bytes(pub_pem, profile, manifest_bytes, sig)
 
-    # Isolated Sign
     sign_latencies = []
     last_sig = b""
     for _ in range(runs):
@@ -161,7 +159,6 @@ def measure_crypto_sign_verify(
         last_sig = sign_bytes(priv_pem, manifest_bytes)
         sign_latencies.append(time.perf_counter_ns() - t0)
 
-    # Isolated Verify
     verify_latencies = []
     verify_ok = True
     for _ in range(runs):
@@ -247,7 +244,6 @@ def measure_e2e_cli(
         work = Path(tmpdir)
         trust_path = work / "trust.json"
 
-        # 1. Generate keys & initialize trust store via CLI for all 3 profiles
         key_paths: dict[str, Path] = {}
         for profile in PROFILES:
             prefix = work / f"key-{profile}"
@@ -270,7 +266,7 @@ def measure_e2e_cli(
             if rc != 0:
                 raise RuntimeError(f"E2E trust add failed for {profile}")
 
-        # 2. Create deterministic artifact files shared across all 3 profiles
+        # Same artifact bytes for every profile
         artifact_paths: dict[str, Path] = {}
         rng_block = hashlib.sha256(b"veriseal-benchmark-seed").digest() * (1024 // 32)  # 1 KB block
         for label, filename, size_bytes in artifact_specs:
@@ -283,7 +279,6 @@ def measure_e2e_cli(
                     remaining -= len(chunk)
             artifact_paths[label] = art_path
 
-        # 3. Benchmark E2E `sign` and `verify` for each profile and artifact size
         for label, filename, size_bytes in artifact_specs:
             art_path = artifact_paths[label]
             for profile in PROFILES:
@@ -318,7 +313,6 @@ def measure_e2e_cli(
                     "--json",
                 ]
 
-                # Warmup (5 runs)
                 for _ in range(warmup):
                     if bundle_path.exists():
                         bundle_path.unlink()
@@ -327,7 +321,6 @@ def measure_e2e_cli(
                     if rc_s != 0 or rc_v != 0:
                         raise RuntimeError(f"Warmup failed for {profile} {label}: sign={rc_s}, verify={rc_v}")
 
-                # Timed E2E Sign (runs)
                 sign_latencies: list[int] = []
                 for _ in range(runs):
                     if bundle_path.exists():
@@ -338,7 +331,6 @@ def measure_e2e_cli(
                     if rc_s != 0:
                         raise RuntimeError(f"E2E sign failed for {profile} {label}")
 
-                # Timed E2E Verify (runs)
                 verify_latencies: list[int] = []
                 for _ in range(runs):
                     t0 = time.perf_counter_ns()
@@ -401,7 +393,7 @@ def run_micro_benchmarks(
     runs: int = 30,
     warmup: int = 5,
 ) -> dict[str, Any]:
-    """Execute suite of Table 2.12 micro-benchmarks."""
+    """Run the keygen, hash, sign/verify and size micro-benchmarks."""
     results: dict[str, Any] = {"keygen": {}, "hash": {}, "crypto_ops": {}, "sizes": {}}
 
     for p in PROFILES:
@@ -429,7 +421,7 @@ def run_full_benchmarks(
     warmup: int = 5,
     results_dir: Path = RESULTS_DIR,
 ) -> dict[str, Any]:
-    """Run all Table 2.12 benchmarks (micro + E2E CLI) and write reports to benchmarks/results/."""
+    """Run all benchmarks (micro + E2E CLI) and write the results to benchmarks/results/."""
     results_dir.mkdir(parents=True, exist_ok=True)
     env = get_environment_specs()
 
@@ -488,11 +480,9 @@ def run_full_benchmarks(
         "sizes": sizes_res,
     }
 
-    # 1. Write JSON results
     json_path = results_dir / "benchmark_results.json"
     json_path.write_text(json.dumps(full_data, indent=2) + "\n", encoding="utf-8")
 
-    # 2. Write CSV raw latencies
     csv_path = results_dir / "raw_latencies.csv"
     with open(csv_path, "w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
@@ -517,7 +507,6 @@ def run_full_benchmarks(
                 for idx, ns in enumerate(d["verify_latencies_ns"], 1):
                     writer.writerow(["e2e_cli", p, lbl, "veriseal_verify", idx, ns, f"{ns / 1e6:.6f}"])
 
-    # 3. Write Markdown Summary Report
     md_path = results_dir / "SUMMARY.md"
     _write_summary_markdown(md_path, full_data)
 

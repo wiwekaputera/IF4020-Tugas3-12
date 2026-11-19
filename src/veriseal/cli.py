@@ -1,16 +1,7 @@
-"""CLI argument parsing and command routing.
+"""Command-line interface of ``veriseal``.
 
-Commands (Tabel 2.7): ``keygen``, ``sign``, ``verify``, ``trust add|list|remove``
-and the bonus ``sbom sign|verify``.
-
-Output rules (Tabel 2.9 / 2.10):
-
-* results go to stdout, errors and extra information go to stderr;
-* ``verify --json`` prints exactly one JSON object followed by a newline;
-* exit code 0 = success, 1 = verification rejected, 2 = usage/I/O error.
-
-The sign and verify pipelines are exposed as :func:`sign_release` and
-:func:`verify_release` so they can be reused (``sbom`` uses them).
+Results go to stdout, errors to stderr. Exit codes: 0 = success,
+1 = verification rejected, 2 = usage or I/O error.
 """
 
 from __future__ import annotations
@@ -70,8 +61,7 @@ class _UsageError(Exception):
 
 
 class _Parser(argparse.ArgumentParser):
-    """ArgumentParser that raises instead of exiting, so ``verify --json`` can
-    still emit a JSON ``INPUT_ERROR`` result on a usage error."""
+    """Raises instead of exiting, so ``verify --json`` can report usage errors as JSON."""
 
     def error(self, message: str):  # type: ignore[override]
         raise _UsageError(self.format_usage(), message)
@@ -141,19 +131,12 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
-# ---------------------------------------------------------------------------
-# Verification result (Tabel 2.9)
-# ---------------------------------------------------------------------------
-
-
 @dataclass
 class VerifyResult:
-    """Outcome of a verification, serializable as Tabel 2.9.
+    """Outcome of a verification.
 
-    ``algorithm``/``keyid``/``package``/``version`` are only filled once the
-    manifest has been parsed successfully; otherwise they stay ``None`` and
-    are emitted as JSON ``null``. ``manifest`` is kept for internal callers
-    (e.g. SBOM binding) and is not part of the JSON output.
+    Manifest fields stay ``None`` (JSON ``null``) until the manifest is parsed.
+    ``manifest`` is for internal callers and is not part of the JSON output.
     """
 
     status: str
@@ -206,11 +189,6 @@ def emit_result(result: VerifyResult, json_output: bool) -> int:
     return result.exit_code
 
 
-# ---------------------------------------------------------------------------
-# Helpers
-# ---------------------------------------------------------------------------
-
-
 def _read_pem(path: str, what: str) -> str:
     try:
         with open(path, "rb") as f:
@@ -239,32 +217,22 @@ def _format_entry(entry: TrustEntry) -> str:
     return f"{entry.keyid}  {entry.algorithm}  {','.join(entry.packages)}"
 
 
-# ---------------------------------------------------------------------------
-# Sign (Algoritma 1)
-# ---------------------------------------------------------------------------
-
-
 def sign_release(file: str, package: str, version: str, key: str, out: str) -> dict[str, Any]:
-    """Sign an artifact and write a ``minisign-bundle/v1`` file.
-
-    Implements Algoritma 1: validate inputs, derive profile and keyid from
-    the private key, hash the artifact, build and serialize the manifest,
-    sign the manifest bytes and write the bundle.
+    """Sign an artifact and write its ``minisign-bundle/v1`` file.
 
     :param file: artifact path; its basename becomes ``artifact.name``.
-    :param package: package name (``[a-z0-9][a-z0-9._-]{0,63}``).
-    :param version: release version (``[A-Za-z0-9][A-Za-z0-9._+-]{0,63}``).
-    :param key: path of the PKCS#8 private key PEM.
+    :param package: package name.
+    :param version: release version.
+    :param key: private key PEM path; the profile is taken from the key.
     :param out: bundle path; must not exist yet.
-    :returns: the signed manifest dict.
-    :raises CliError: on any input, key or I/O problem (exit code 2).
+    :returns: the signed manifest.
+    :raises CliError: on invalid input, key or I/O problems.
 
     Example::
 
         sign_release("dist/contoh-app.zip", "contoh-app", "1.0.0",
                      "keys/publisher.key.pem", "release.json")
     """
-    # 1. ValidInputs(f, p, v, sk, o)
     _check_regex(package, PACKAGE_RE, "package name")
     _check_regex(version, VERSION_RE, "version")
     name = os.path.basename(file)
@@ -279,7 +247,6 @@ def sign_release(file: str, package: str, version: str, key: str, out: str) -> d
     if not info.is_private:
         raise CliError(f"{key!r} is a public key; sign needs the private key (.key.pem)")
 
-    # 2-5. profile, keyid, artifact size and hash
     try:
         size, digest = hash_file(file)
     except OSError as exc:
@@ -287,7 +254,6 @@ def sign_release(file: str, package: str, version: str, key: str, out: str) -> d
     if size > MAX_ARTIFACT_SIZE:
         raise CliError("artifact is larger than 2^53-1 bytes")
 
-    # 6-9. manifest
     try:
         manifest = build_manifest(package, version, info.profile, info.keyid, name, size, digest)
     except FormatError as exc:
@@ -296,7 +262,6 @@ def sign_release(file: str, package: str, version: str, key: str, out: str) -> d
     if len(manifest_bytes) > MAX_MANIFEST_BYTES:
         raise CliError(f"manifest exceeds {MAX_MANIFEST_BYTES} bytes")
 
-    # 10-12. sign, bundle, write
     try:
         signature = crypto.sign_bytes(priv_pem, manifest_bytes)
         bundle = build_bundle(manifest_bytes, signature)
@@ -307,11 +272,6 @@ def sign_release(file: str, package: str, version: str, key: str, out: str) -> d
     except OSError as exc:
         raise CliError(f"cannot write bundle {out!r}: {exc.strerror or exc}") from None
     return manifest
-
-
-# ---------------------------------------------------------------------------
-# Verify (Algoritma 2 / Tabel 2.8)
-# ---------------------------------------------------------------------------
 
 
 def _unreadable(path: str) -> str | None:
@@ -327,31 +287,23 @@ def _unreadable(path: str) -> str | None:
 
 
 def verify_release(file: str, bundle: str, trust_store: str, package: str, version: str) -> VerifyResult:
-    """Verify an artifact against a bundle and a trust store.
+    """Verify an artifact against its bundle and a trust store.
 
-    Runs the checks of Tabel 2.8 in order and stops at the first failure:
-    INPUT_ERROR, FORMAT_ERROR, UNSUPPORTED_ALGORITHM, KEY_NOT_TRUSTED,
-    INVALID_SIGNATURE, METADATA_MISMATCH, ARTIFACT_MISMATCH, then OK.
+    Checks stop at the first failure, in this order: INPUT_ERROR,
+    FORMAT_ERROR, UNSUPPORTED_ALGORITHM, KEY_NOT_TRUSTED, INVALID_SIGNATURE,
+    METADATA_MISMATCH, ARTIFACT_MISMATCH. Keys come only from the trust store.
 
-    Nothing is written to disk. The trust store is the only source of trust;
-    no key is taken from the bundle.
-
-    :param file: artifact path.
-    :param bundle: bundle path.
-    :param trust_store: trust store path.
-    :param package: package name the user expects.
-    :param version: version the user expects.
-    :returns: a :class:`VerifyResult` (never raises for bad input).
+    :param package: expected package name.
+    :param version: expected version.
+    :returns: a :class:`VerifyResult`; bad input never raises.
 
     Example::
 
         r = verify_release("contoh-app.zip", "release.json", "trust.json",
                            "contoh-app", "1.0.0")
-        assert r.status == "OK"
     """
     res = VerifyResult(Status.INPUT_ERROR, "")
 
-    # 1. INPUT_ERROR: options and readable files
     if not matches(PACKAGE_RE, package):
         return res.with_status(Status.INPUT_ERROR, f"invalid --package value: {package!r}")
     if not matches(VERSION_RE, version):
@@ -361,7 +313,6 @@ def verify_release(file: str, bundle: str, trust_store: str, package: str, versi
         if problem:
             return res.with_status(Status.INPUT_ERROR, f"cannot read {what} {path!r}: {problem}")
 
-    # 2. FORMAT_ERROR: bundle, manifest (canonical), trust store
     try:
         manifest_bytes, signature = parse_bundle(read_limited(bundle, MAX_BUNDLE_BYTES, "bundle"))
         manifest = parse_manifest(manifest_bytes)
@@ -384,11 +335,9 @@ def verify_release(file: str, bundle: str, trust_store: str, package: str, versi
     except FormatError as exc:
         return res.with_status(Status.FORMAT_ERROR, f"trust store: {exc}")
 
-    # 3. UNSUPPORTED_ALGORITHM
     if algorithm not in PROFILES:
         return res.with_status(Status.UNSUPPORTED_ALGORITHM, f"unsupported algorithm {algorithm!r}")
 
-    # 4. KEY_NOT_TRUSTED
     entry = store.lookup(keyid)
     if entry is None:
         return res.with_status(Status.KEY_NOT_TRUSTED, "keyid is not in the trust store")
@@ -399,7 +348,7 @@ def verify_release(file: str, bundle: str, trust_store: str, package: str, versi
     if package not in entry.packages:
         return res.with_status(Status.KEY_NOT_TRUSTED, f"key is not authorized for package {package!r}")
 
-    # 5. INVALID_SIGNATURE (over the manifest bytes exactly as received)
+    # The signature is checked over the manifest bytes exactly as received.
     try:
         ok = crypto.verify_bytes(entry.public_key_pem, algorithm, manifest_bytes, signature)
     except (ValueError, TypeError):
@@ -407,7 +356,6 @@ def verify_release(file: str, bundle: str, trust_store: str, package: str, versi
     if not ok:
         return res.with_status(Status.INVALID_SIGNATURE, "signature does not verify with the trusted key")
 
-    # 6. METADATA_MISMATCH
     if manifest["package"] != package:
         return res.with_status(
             Status.METADATA_MISMATCH, f"manifest package {manifest['package']!r} != expected {package!r}"
@@ -420,7 +368,6 @@ def verify_release(file: str, bundle: str, trust_store: str, package: str, versi
     if art["name"] != name:
         return res.with_status(Status.METADATA_MISMATCH, f"manifest artifact name {art['name']!r} != file name {name!r}")
 
-    # 7. ARTIFACT_MISMATCH
     try:
         size, digest = hash_file(file)
     except OSError as exc:
@@ -430,13 +377,7 @@ def verify_release(file: str, bundle: str, trust_store: str, package: str, versi
     if digest != art["sha256"]:
         return res.with_status(Status.ARTIFACT_MISMATCH, "artifact SHA-256 does not match the manifest")
 
-    # 8. OK
     return res.with_status(Status.OK, "Signature and artifact are valid.")
-
-
-# ---------------------------------------------------------------------------
-# Command handlers
-# ---------------------------------------------------------------------------
 
 
 def cmd_keygen(args: argparse.Namespace) -> int:
@@ -586,7 +527,7 @@ def main(argv: list[str] | None = None) -> int:
     except CliError as exc:
         print(f"veriseal: error: {exc}", file=sys.stderr)
         return EXIT_INPUT_ERROR
-    except Exception as exc:  # never leak a traceback or a misleading exit code
+    except Exception as exc:  # no traceback; unexpected errors exit with 2
         msg = f"internal error: {type(exc).__name__}: {exc}"
         if getattr(args, "json_output", False):
             emit_result(VerifyResult(Status.INPUT_ERROR, msg), True)

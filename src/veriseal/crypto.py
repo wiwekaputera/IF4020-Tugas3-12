@@ -14,7 +14,6 @@ from cryptography.hazmat.primitives.asymmetric.utils import (
 
 _SHA = hashes.SHA256()
 _PSS = padding.PSS(mgf=padding.MGF1(_SHA), salt_length=32)
-# _N = ec.SECP256R1()
 _ORDER = 0xFFFFFFFF00000000FFFFFFFFFFFFFFFFBCE6FAADA7179E84F3B9CAC2FC632551
 _SIG_LEN = {"rsa-pss-sha256": 384, "ecdsa-p256-sha256": 64, "ed25519": 64}
 
@@ -56,13 +55,11 @@ def _profile(pub) -> str:
 @functools.lru_cache(maxsize=64)
 def _load(pem_str: str):
     """Return (key_object, is_private). ValueError if not a valid PKCS8/SPKI PEM."""
-    # data = pem_str.encode()
     s = pem_str.strip()
     data = s.encode()
     try:
         if s.startswith("-----BEGIN PRIVATE KEY-----") and s.endswith("-----END PRIVATE KEY-----"):
             return serialization.load_pem_private_key(data, password=None), True
-        # return serialization.load_pem_public_key(data), False
         if s.startswith("-----BEGIN PUBLIC KEY-----") and s.endswith("-----END PUBLIC KEY-----"):
             return serialization.load_pem_public_key(data), False
         raise ValueError("PEM key must be PKCS#8 (PRIVATE KEY) or SPKI (PUBLIC KEY)")

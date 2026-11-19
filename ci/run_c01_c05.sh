@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# CI/CD Integration Scenarios C01-C05 for veriseal (Spec Section 2.9, Tables 2.13-2.15)
+# CI/CD integration scenarios C01-C05 for veriseal.
 set -eu
 
 : "${IMAGE:?IMAGE environment variable (pinned with @sha256:...) is mandatory}"
@@ -7,7 +7,7 @@ set -eu
 : "${CI_SIGNING_KEY_ECDSA:?CI_SIGNING_KEY_ECDSA secret is mandatory}"
 : "${CI_SIGNING_KEY_ED25519:?CI_SIGNING_KEY_ED25519 secret is mandatory}"
 
-# Enforce digest pinning per Table 2.13 ("Workflows pin the image reference by digest")
+# The image reference must be pinned by digest.
 case "$IMAGE" in
   *@sha256:*) ;;
   *)
@@ -27,11 +27,10 @@ trap cleanup_secret EXIT INT TERM
 HOST_UID="$(id -u)"
 HOST_GID="$(id -g)"
 
-# Clean and prepare isolated directories
 rm -rf dist out
 mkdir -p dist out
 
-# Create deterministic dist/contoh-app.zip across runners (1312 bytes, matches tests/fixtures/contoh-app.zip)
+# Same artifact bytes on every runner
 if [ -f "tests/fixtures/contoh-app.zip" ]; then
   cp "tests/fixtures/contoh-app.zip" "dist/contoh-app.zip"
 else
@@ -45,7 +44,6 @@ if [ "${SKIP_DOCKER_PULL:-0}" != "1" ]; then
 fi
 printf '%s\n' "$IMAGE" > out/image-digest.txt
 
-# Helper to assert JSON fields in verification.json without external dependencies
 assert_verification_json() {
   json_file="$1"
   expected_status="$2"
@@ -74,7 +72,6 @@ assert str(data.get('valid')).lower() == sys.argv[3], f'Expected valid {sys.argv
   fi
 }
 
-# Helper to sign an artifact inside container using an ephemeral 0600 private key file
 sign_in_container() {
   secret_value="$1"
   input_dir="$2"
@@ -94,14 +91,12 @@ sign_in_container() {
     --package contoh-app --version 1.0.0 \
     --key /run/signing.key.pem --out "/output/$bundle_name"
 
-  # Immediately delete private key so verification stage never has access to it
+  # Delete the key right away; the verify step never sees it
   rm -f "$SIGNING_KEY_FILE"
   SIGNING_KEY_FILE=""
 }
 
-# ==============================================================================
-# Scenario C01: Pull by digest -> Sign -> Verify -> Gate Deploy Marker (All 3 profiles)
-# ==============================================================================
+# C01: valid artifact, all three profiles
 run_c01_profile() {
   profile="$1"
   secret_val="$2"
@@ -112,10 +107,8 @@ run_c01_profile() {
   echo "=== Running C01 ($profile) ==="
   cp "$PWD/dist/contoh-app.zip" "$scen_dir/contoh-app.zip"
 
-  # Stage 2: Signing (with ephemeral private key)
   sign_in_container "$secret_val" "$PWD/dist" "$scen_dir" "rilis.json"
 
-  # Stage 3: Verification (no private key mounted; uses pre-prepared ci/trust.json)
   docker run --rm --network none \
     --user "$HOST_UID:$HOST_GID" \
     -v "$PWD/dist:/input:ro" \
@@ -128,7 +121,7 @@ run_c01_profile() {
 
   assert_verification_json "$scen_dir/verification.json" "OK" "true"
 
-  # Stage 4: Deployment strictly conditioned on verification exit 0
+  # Only reached if verify exited 0
   printf 'DEPLOYED package=contoh-app version=1.0.0 profile=%s\n' "$profile" > "$scen_dir/DEPLOYED.marker"
 
   if [ ! -f "$scen_dir/DEPLOYED.marker" ]; then
@@ -142,9 +135,7 @@ run_c01_profile "rsa-pss-sha256" "$CI_SIGNING_KEY_RSA"
 run_c01_profile "ecdsa-p256-sha256" "$CI_SIGNING_KEY_ECDSA"
 run_c01_profile "ed25519" "$CI_SIGNING_KEY_ED25519"
 
-# ==============================================================================
-# Scenario C02: Post-sign 1-byte artifact modification (preserving size & filename)
-# ==============================================================================
+# C02: one byte changed after signing
 echo "=== Running C02 (ed25519 — 1-byte artifact tamper after signing) ==="
 C02_DIR="$PWD/out/c02"
 rm -rf "$C02_DIR"
@@ -153,7 +144,6 @@ mkdir -p "$C02_DIR"
 cp "$PWD/dist/contoh-app.zip" "$C02_DIR/contoh-app.zip"
 sign_in_container "$CI_SIGNING_KEY_ED25519" "$C02_DIR" "$C02_DIR" "rilis.json"
 
-# Flip 1st byte in C02_DIR/contoh-app.zip preserving exact byte size and filename
 ORIG_SIZE="$(wc -c < "$C02_DIR/contoh-app.zip" | tr -d ' ')"
 printf '\x00' | dd of="$C02_DIR/contoh-app.zip" bs=1 count=1 conv=notrunc 2>/dev/null
 NEW_SIZE="$(wc -c < "$C02_DIR/contoh-app.zip" | tr -d ' ')"
@@ -190,9 +180,7 @@ if [ -e "$C02_DIR/DEPLOYED.marker" ]; then
 fi
 echo "[PASS] C02: exit=1, status=ARTIFACT_MISMATCH, DEPLOYED.marker absent"
 
-# ==============================================================================
-# Scenario C03: Verify valid signed artifact using empty trust store (ci/empty-trust.json)
-# ==============================================================================
+# C03: empty trust store
 echo "=== Running C03 (ed25519 — empty trust store) ==="
 C03_DIR="$PWD/out/c03"
 rm -rf "$C03_DIR"
@@ -229,9 +217,7 @@ if [ -e "$C03_DIR/DEPLOYED.marker" ]; then
 fi
 echo "[PASS] C03: exit=1, status=KEY_NOT_TRUSTED, DEPLOYED.marker absent"
 
-# ==============================================================================
-# Scenario C04: Verify with non-existent artifact path (/input/non-existent.zip)
-# ==============================================================================
+# C04: missing artifact
 echo "=== Running C04 (ed25519 — missing artifact path) ==="
 C04_DIR="$PWD/out/c04"
 rm -rf "$C04_DIR"
@@ -267,9 +253,7 @@ if [ -e "$C04_DIR/DEPLOYED.marker" ]; then
 fi
 echo "[PASS] C04: exit=2, status=INPUT_ERROR, DEPLOYED.marker absent"
 
-# ==============================================================================
-# Scenario C05: Runner UID/GID (--user), no TTY (no -i/-t), and --network none
-# ==============================================================================
+# C05: runner UID:GID, no TTY, no network
 echo "=== Running C05 (ed25519 — non-root UID:GID, no TTY, --network none) ==="
 C05_DIR="$PWD/out/c05"
 rm -rf "$C05_DIR"
@@ -289,7 +273,6 @@ docker run --rm --network none \
 
 assert_verification_json "$C05_DIR/verification.json" "OK" "true"
 
-# Verify output bundle ownership matches runner's UID:GID
 if stat -c "%u:%g" "$C05_DIR/rilis.json" >/dev/null 2>&1; then
   FILE_OWNER="$(stat -c "%u:%g" "$C05_DIR/rilis.json")"
 else
@@ -302,9 +285,7 @@ if [ "$FILE_OWNER" != "$HOST_UID:$HOST_GID" ]; then
 fi
 echo "[PASS] C05: exit=0, status=OK, owner=$FILE_OWNER, --network none, no TTY"
 
-# ==============================================================================
-# Evidence Generation: out/marker-proof.txt and out/SUMMARY.md
-# ==============================================================================
+# Evidence files
 {
   echo "# Marker Proof & Output Directory Listing (C01-C05)"
   echo "Image Reference: $IMAGE"

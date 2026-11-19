@@ -1,16 +1,7 @@
-"""Manifest and bundle serialization and validation.
+"""Manifest and bundle formats: strict JSON/Base64 parsing, canonical
+serialization and file helpers.
 
-This module owns every byte-level format rule of the assignment:
-
-* strict JSON parsing (no BOM, no duplicate keys, no NaN/Infinity, no floats),
-* strict RFC 4648 Base64 (no whitespace, canonical padding),
-* the canonical ``minisign-manifest/v1`` serialization (Tabel 2.3),
-* the ``minisign-bundle/v1`` container (Tabel 2.4),
-* small file helpers (bounded reads, streaming SHA-256, atomic writes).
-
-Every format violation raises :class:`FormatError`, which the CLI maps to the
-``FORMAT_ERROR`` verification status. I/O problems are left as ``OSError`` so
-the CLI can map them to ``INPUT_ERROR`` / exit code 2.
+Format violations raise :class:`FormatError`; I/O problems stay ``OSError``.
 """
 
 from __future__ import annotations
@@ -27,13 +18,10 @@ from typing import Any
 from veriseal.contracts import BUNDLE_SCHEMA, MANIFEST_SCHEMA
 
 MAX_MANIFEST_BYTES = 16 * 1024
-"""Maximum size of the serialized manifest ``M`` in bytes (16 KiB)."""
-
 MAX_BUNDLE_BYTES = 64 * 1024
-"""Maximum size of a bundle file in bytes (64 KiB)."""
 
 MAX_ARTIFACT_SIZE = 2**53 - 1
-"""Largest ``artifact.size`` accepted (IEEE-754 binary64 safe integer)."""
+"""Largest ``artifact.size`` accepted (largest integer a JSON number holds exactly)."""
 
 PACKAGE_RE = re.compile(r"[a-z0-9][a-z0-9._-]{0,63}")
 VERSION_RE = re.compile(r"[A-Za-z0-9][A-Za-z0-9._+-]{0,63}")
@@ -49,19 +37,11 @@ _HASH_CHUNK = 1024 * 1024
 
 
 class FormatError(ValueError):
-    """A file or value violates the manifest/bundle/trust-store contract."""
-
-
-# ---------------------------------------------------------------------------
-# Regex helpers
-# ---------------------------------------------------------------------------
+    """A file or value violates the manifest, bundle or trust store format."""
 
 
 def matches(pattern: re.Pattern[str], value: str) -> bool:
     """Return True if ``value`` matches ``pattern`` over its whole length.
-
-    ``re.fullmatch`` is used on purpose: ``re.match(r"...$")`` would also accept
-    a trailing newline.
 
     >>> matches(PACKAGE_RE, "contoh-app")
     True
@@ -69,11 +49,6 @@ def matches(pattern: re.Pattern[str], value: str) -> bool:
     False
     """
     return isinstance(value, str) and pattern.fullmatch(value) is not None
-
-
-# ---------------------------------------------------------------------------
-# Strict JSON
-# ---------------------------------------------------------------------------
 
 
 def _reject_duplicates(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
@@ -94,14 +69,7 @@ def _reject_float(text: str) -> Any:
 
 
 def strict_json_loads(data: bytes) -> Any:
-    """Parse UTF-8 JSON bytes strictly.
-
-    Rejects a UTF-8 BOM, invalid UTF-8, duplicate object keys (detected while
-    parsing), ``NaN``/``Infinity`` and any non-integer number.
-
-    :param data: raw file bytes.
-    :returns: the parsed JSON value.
-    :raises FormatError: on any violation.
+    """Parse UTF-8 JSON bytes, rejecting a BOM, duplicate keys, NaN/Infinity and floats.
 
     >>> strict_json_loads(b'{"a":1}')
     {'a': 1}
@@ -130,10 +98,7 @@ def strict_json_loads(data: bytes) -> Any:
 
 
 def require_object(value: Any, keys: tuple[str, ...], where: str) -> dict[str, Any]:
-    """Check that ``value`` is a JSON object with exactly the given keys.
-
-    :raises FormatError: if it is not an object, or has missing/extra fields.
-    """
+    """Check that ``value`` is a JSON object with exactly ``keys``."""
     if not isinstance(value, dict):
         raise FormatError(f"{where} must be a JSON object")
     missing = [k for k in keys if k not in value]
@@ -146,10 +111,7 @@ def require_object(value: Any, keys: tuple[str, ...], where: str) -> dict[str, A
 
 
 def require_str(value: Any, where: str, pattern: re.Pattern[str] | None = None) -> str:
-    """Check that ``value`` is a string (and optionally matches ``pattern``).
-
-    ``null`` and every other JSON type are rejected.
-    """
+    """Check that ``value`` is a string, optionally matching ``pattern``."""
     if not isinstance(value, str):
         raise FormatError(f"{where} must be a string")
     if pattern is not None and not matches(pattern, value):
@@ -158,11 +120,7 @@ def require_str(value: Any, where: str, pattern: re.Pattern[str] | None = None) 
 
 
 def require_int(value: Any, where: str, minimum: int, maximum: int) -> int:
-    """Check that ``value`` is an integer in ``[minimum, maximum]``.
-
-    Booleans are rejected even though Python treats ``bool`` as a subclass of
-    ``int``.
-    """
+    """Check that ``value`` is an integer in range. Booleans are rejected."""
     if isinstance(value, bool) or not isinstance(value, int):
         raise FormatError(f"{where} must be an integer")
     if not minimum <= value <= maximum:
@@ -170,21 +128,13 @@ def require_int(value: Any, where: str, minimum: int, maximum: int) -> int:
     return value
 
 
-# ---------------------------------------------------------------------------
-# Strict Base64 (RFC 4648, standard alphabet, padded)
-# ---------------------------------------------------------------------------
-
-
 def b64encode(data: bytes) -> str:
-    """Encode bytes as standard, padded RFC 4648 Base64 text."""
+    """Encode bytes as standard, padded Base64 text."""
     return base64.b64encode(data).decode("ascii")
 
 
 def b64decode_strict(value: Any, where: str = "Base64 value") -> bytes:
-    """Decode standard RFC 4648 Base64, rejecting anything non-canonical.
-
-    Whitespace, the URL-safe alphabet, wrong padding and non-zero padding bits
-    are all rejected (decode, then re-encode and compare).
+    """Decode standard Base64; anything that does not re-encode identically is rejected.
 
     >>> b64decode_strict("aGk=")
     b'hi'
@@ -204,11 +154,6 @@ def b64decode_strict(value: Any, where: str = "Base64 value") -> bytes:
     return raw
 
 
-# ---------------------------------------------------------------------------
-# Release manifest (minisign-manifest/v1)
-# ---------------------------------------------------------------------------
-
-
 def build_manifest(
     package: str,
     version: str,
@@ -218,9 +163,7 @@ def build_manifest(
     size: int,
     sha256: str,
 ) -> dict[str, Any]:
-    """Build a manifest dict with the field order required by Tabel 2.3.
-
-    The result is validated with :func:`validate_manifest`.
+    """Build and validate a manifest dict in canonical field order.
 
     >>> m = build_manifest("contoh-app", "1.0.0", "ed25519", "0" * 64, "a.zip", 3, "f" * 64)
     >>> list(m)
@@ -238,12 +181,10 @@ def build_manifest(
 
 
 def validate_manifest(obj: Any) -> dict[str, Any]:
-    """Validate the structure, types and value patterns of a manifest.
+    """Validate the structure, types and values of a manifest.
 
-    ``algorithm`` is only checked to be a string: an unknown profile must be
-    reported later as ``UNSUPPORTED_ALGORITHM``, not as ``FORMAT_ERROR``.
-
-    :raises FormatError: on any violation.
+    ``algorithm`` is only checked to be a string, so an unknown profile is
+    reported as ``UNSUPPORTED_ALGORITHM`` instead of ``FORMAT_ERROR``.
     """
     m = require_object(obj, MANIFEST_KEYS, "manifest")
     if m["schema"] != MANIFEST_SCHEMA:
@@ -260,11 +201,7 @@ def validate_manifest(obj: Any) -> dict[str, Any]:
 
 
 def serialize_manifest(manifest: dict[str, Any]) -> bytes:
-    """Return the canonical bytes ``M`` of a manifest.
-
-    Rules: fixed field order, no whitespace outside strings, no trailing
-    newline, ASCII only (no ``\\uXXXX`` is ever produced because the field
-    patterns only allow printable ASCII without quotes or backslashes).
+    """Return the canonical manifest bytes ``M``: fixed field order, no whitespace, ASCII.
 
     >>> m = build_manifest("contoh-app", "1.0.0", "ed25519", "0" * 64, "a.zip", 3, "f" * 64)
     >>> serialize_manifest(m)[:52]
@@ -283,14 +220,10 @@ def serialize_manifest(manifest: dict[str, Any]) -> bytes:
 
 
 def parse_manifest(data: bytes) -> dict[str, Any]:
-    """Strictly parse manifest bytes ``M`` taken from a bundle.
+    """Parse manifest bytes ``M`` and require that they are canonical.
 
-    Checks the 16 KiB limit, strict JSON, the schema of Tabel 2.3, and that
-    ``serialize_manifest(m) == M`` byte for byte (canonical serialization).
-
-    :param data: the decoded ``manifest_b64`` bytes.
-    :returns: the manifest as a dict.
-    :raises FormatError: on any violation.
+    :raises FormatError: if ``M`` is too large, invalid, or not byte-identical
+        to its own canonical serialization.
     """
     if len(data) > MAX_MANIFEST_BYTES:
         raise FormatError(f"manifest exceeds {MAX_MANIFEST_BYTES} bytes")
@@ -300,16 +233,8 @@ def parse_manifest(data: bytes) -> dict[str, Any]:
     return manifest
 
 
-# ---------------------------------------------------------------------------
-# Bundle (minisign-bundle/v1)
-# ---------------------------------------------------------------------------
-
-
 def build_bundle(manifest_bytes: bytes, signature: bytes) -> bytes:
-    """Build the bundle file contents for manifest bytes ``M`` and a signature.
-
-    :raises FormatError: if the result would exceed 64 KiB.
-    """
+    """Return the bundle file contents for manifest bytes ``M`` and a signature."""
     bundle = {
         "schema": BUNDLE_SCHEMA,
         "manifest_b64": b64encode(manifest_bytes),
@@ -322,14 +247,10 @@ def build_bundle(manifest_bytes: bytes, signature: bytes) -> bytes:
 
 
 def parse_bundle(data: bytes) -> tuple[bytes, bytes]:
-    """Strictly parse bundle bytes and return ``(M, signature)``.
+    """Parse bundle bytes and return ``(M, signature)``.
 
-    Field order and whitespace of the outer bundle JSON are free; extra or
-    duplicate fields, a wrong schema and invalid Base64 are rejected. The
-    manifest bytes are returned undecoded so they can be parsed and verified
-    exactly as received.
-
-    :raises FormatError: on any violation.
+    Field order and whitespace of the bundle JSON are free. ``M`` is returned
+    as received so it can be verified byte for byte.
     """
     if len(data) > MAX_BUNDLE_BYTES:
         raise FormatError(f"bundle exceeds {MAX_BUNDLE_BYTES} bytes")
@@ -341,17 +262,8 @@ def parse_bundle(data: bytes) -> tuple[bytes, bytes]:
     return manifest_bytes, signature
 
 
-# ---------------------------------------------------------------------------
-# File helpers
-# ---------------------------------------------------------------------------
-
-
 def read_limited(path: str, limit: int, what: str = "file") -> bytes:
-    """Read a whole file, failing with FormatError if it exceeds ``limit`` bytes.
-
-    :raises OSError: if the file cannot be read.
-    :raises FormatError: if the file is larger than ``limit``.
-    """
+    """Read a file, raising FormatError if it is larger than ``limit`` bytes."""
     with open(path, "rb") as f:
         data = f.read(limit + 1)
     if len(data) > limit:
@@ -360,12 +272,7 @@ def read_limited(path: str, limit: int, what: str = "file") -> bytes:
 
 
 def hash_file(path: str) -> tuple[int, str]:
-    """Stream a file and return ``(size_in_bytes, lowercase_hex_sha256)``.
-
-    The file is only read as bytes, never executed or extracted.
-
-    :raises OSError: if the file cannot be read.
-    """
+    """Stream a file and return ``(size, lowercase hex SHA-256)``."""
     digest = hashlib.sha256()
     size = 0
     with open(path, "rb") as f:
@@ -376,15 +283,9 @@ def hash_file(path: str) -> tuple[int, str]:
 
 
 def atomic_write(path: str, data: bytes, mode: int = 0o644) -> None:
-    """Write ``data`` to ``path`` atomically.
+    """Write ``data`` to a temporary file in the same directory, then rename it over ``path``.
 
-    The data goes to a temporary file in the same directory, is flushed and
-    fsync'ed, then renamed over ``path`` with :func:`os.replace`. If anything
-    fails the previous file is left untouched and the temporary file removed.
-
-    :param mode: permission bits for the final file (use ``0o600`` for
-        private keys; ignored where the OS does not support it).
-    :raises OSError: if the directory is not writable.
+    On failure the old file is left untouched.
     """
     directory = os.path.dirname(os.path.abspath(path))
     fd, tmp = tempfile.mkstemp(dir=directory, prefix=".veriseal-", suffix=".tmp")

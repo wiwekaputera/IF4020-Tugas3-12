@@ -59,7 +59,7 @@ class TestInterop(unittest.TestCase):
                     pub_pem = pub_path.read_text()
                     is_ec = profile == "ecdsa-p256-sha256"
 
-                    # 1. veriseal signs -> OpenSSL verifies
+                    # veriseal signs -> OpenSSL verifies
                     raw_sig = sign_bytes(priv_pem, msg)
                     if is_ec:
                         r = int.from_bytes(raw_sig[:32], "big")
@@ -88,7 +88,7 @@ class TestInterop(unittest.TestCase):
                             "-signature", str(sig_file), str(bad_file)
                         )
 
-                    # 2. OpenSSL signs -> veriseal verifies
+                    # OpenSSL signs -> veriseal verifies
                     if profile == "ed25519":
                         signed = self._ossl(
                             "pkeyutl", "-sign", "-rawin", "-inkey", str(priv_path),

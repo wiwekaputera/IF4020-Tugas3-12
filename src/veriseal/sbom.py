@@ -1,22 +1,7 @@
-"""Signed SBOM generation and verification (bonus, Bagian 2.10.3).
+"""Signed CycloneDX SBOM bound to a release artifact by its SHA-256.
 
-The SBOM is a CycloneDX JSON document. The SHA-256 of the release artifact it
-describes is read from::
-
-    metadata.component.hashes[] = {"alg": "SHA-256", "content": "<64 hex>"}
-
-Exactly one ``SHA-256`` entry is required there. Other SBOM content is free.
-
-The SBOM file is signed as a separate artifact using the same
-``minisign-manifest/v1`` and ``minisign-bundle/v1`` formats as a release, so it
-is protected by the same trust store and verification rules.
-
-``sbom verify`` succeeds only when:
-
-1. the release artifact verifies against its own bundle,
-2. the SBOM file verifies against the SBOM bundle, and
-3. the SHA-256 recorded in the SBOM equals the verified artifact SHA-256
-   (otherwise ``ARTIFACT_MISMATCH``).
+The SBOM is signed as its own artifact with the same manifest and bundle
+formats. The artifact hash is read from ``metadata.component.hashes``.
 """
 
 from __future__ import annotations
@@ -33,11 +18,7 @@ HASH_ALG = "SHA-256"
 
 
 def load_sbom(path: str) -> dict[str, Any]:
-    """Read and strictly parse an SBOM JSON file.
-
-    :raises OSError: if it cannot be read.
-    :raises FormatError: if it is not a strict-JSON CycloneDX object.
-    """
+    """Read and parse a CycloneDX SBOM JSON file."""
     with open(path, "rb") as f:
         return _parse_sbom(f.read())
 
@@ -52,13 +33,7 @@ def _parse_sbom(data: bytes) -> dict[str, Any]:
 
 
 def extract_release_sha256(sbom: dict[str, Any]) -> str:
-    """Return the release artifact SHA-256 recorded in a CycloneDX SBOM.
-
-    Looks at ``metadata.component.hashes`` and requires exactly one entry
-    with ``alg == "SHA-256"`` whose ``content`` is 64 hex characters. The
-    value is returned in lowercase.
-
-    :raises FormatError: if the hash is missing, duplicated or malformed.
+    """Return the lowercase SHA-256 from the single ``SHA-256`` entry in ``metadata.component.hashes``.
 
     >>> extract_release_sha256({"metadata": {"component": {"hashes": [
     ...     {"alg": "SHA-256", "content": "AB" * 32}]}}}) == "ab" * 32
@@ -79,16 +54,10 @@ def extract_release_sha256(sbom: dict[str, Any]) -> str:
 
 
 def sign_sbom(sbom_path: str, artifact: str, package: str, version: str, key: str, out: str) -> dict[str, Any]:
-    """Sign an SBOM file after checking that it describes ``artifact``.
+    """Sign an SBOM file after checking that it records the SHA-256 of ``artifact``.
 
-    :param sbom_path: CycloneDX SBOM JSON file (signed as its own artifact).
-    :param artifact: release artifact the SBOM must reference.
-    :param package: package name written into the SBOM manifest.
-    :param version: version written into the SBOM manifest.
-    :param key: publisher private key PEM path.
-    :param out: output path of the SBOM bundle (must not exist).
-    :returns: the signed SBOM manifest dict.
-    :raises CliError: on invalid SBOM, hash mismatch, key or I/O problems.
+    :returns: the signed SBOM manifest.
+    :raises CliError: on an invalid SBOM, a hash mismatch, or key/I/O problems.
 
     Example::
 
@@ -119,14 +88,9 @@ def verify_sbom(
     package: str,
     version: str,
 ) -> VerifyResult:
-    """Verify an SBOM bundle, the release bundle, and their SHA-256 binding.
+    """Verify the release bundle, the SBOM bundle, and that the SBOM hash matches the artifact.
 
-    Both bundles go through the full release verification (Tabel 2.8) with
-    the same trust store, package and version. The first failure is returned
-    with a ``release artifact:`` or ``SBOM:`` prefix in its message.
-
-    :returns: a :class:`~veriseal.cli.VerifyResult`; on success its metadata
-        fields describe the release artifact manifest.
+    :returns: a :class:`~veriseal.cli.VerifyResult` describing the release artifact.
     """
     release = verify_release(artifact, artifact_bundle, trust_store, package, version)
     if not release.valid:
@@ -136,7 +100,7 @@ def verify_sbom(
     if not sbom_res.valid:
         return sbom_res.with_status(sbom_res.status, f"SBOM: {sbom_res.message}")
 
-    # Parse exactly the bytes whose hash was just verified (no re-read race).
+    # Re-read the SBOM and make sure it is still the file that was verified.
     try:
         with open(sbom_path, "rb") as f:
             sbom_bytes = f.read()

@@ -43,21 +43,17 @@ def ensure_fixtures(fixtures_dir: Path) -> tuple[Path, Path, Path, Path, Path]:
 
 
 def setup_context(runner: CliRunner) -> TestContext:
-    # 1. Reset results directory
     if runner.results_dir.exists():
         shutil.rmtree(runner.results_dir)
     runner.results_dir.mkdir(parents=True, exist_ok=True)
 
-    # 2. Ensure persistent input fixtures exist in tests/fixtures/
     text_file, bin_file, empty_file, base_zip, sbom_file = ensure_fixtures(FIXTURES_DIR)
 
-    # 3. Create temporary scratch workspace for per-run bundles and keys
     work = runner.results_dir / "_work"
     work.mkdir(parents=True, exist_ok=True)
     trust_store = work / "trust.json"
     keyids: dict[str, str] = {}
 
-    # 4. Generate keys & populate trust store for all 3 profiles
     for prof in PROFILES:
         prefix = work / f"pub-{prof}"
         res_kg = runner.invoke(["keygen", "--algorithm", prof, "--out", str(prefix), "--force"])
@@ -70,7 +66,7 @@ def setup_context(runner: CliRunner) -> TestContext:
         if res_ta.returncode != 0:
             raise RuntimeError(f"Setup trust add failed for {prof}: {res_ta.stderr}")
 
-    # 5. Sign baseline reference bundle (ed25519) for tamper scenarios U02-U13
+    # Reference ed25519 bundle used by U02-U13
     ref_prof = "ed25519"
     ref_priv = work / f"pub-{ref_prof}.key.pem"
     ref_bundle = work / "ref_bundle.json"
